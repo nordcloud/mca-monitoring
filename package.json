@@ -1,0 +1,93 @@
+{
+  "name": "mca-monitoring",
+  "version": "0.0.0",
+  "description": "",
+  "keywords": [],
+  "main": "./dist/mca-monitoring.js",
+  "typings": "./dist/mca-monitoring.d.ts",
+  "author": "Niko Lehtovirta <niko.lehtovirta@nordcloud.com>",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "lint": "eslint . --ext ts",
+    "lint:fix": "eslint . --ext ts --fix",
+    "test": "ava",
+    "build": "tsc && typedoc --out docs --target es6 --theme minimal --mode file src",
+    "start": "tsc --watch"
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "all",
+    "singleQuote": true,
+    "printWidth": 120,
+    "tabWidth": 2
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "dependencies": {
+    "@aws-cdk/aws-cloudformation": "^1.24.0",
+    "@aws-cdk/aws-cloudwatch": "^1.24.0",
+    "@aws-cdk/aws-cloudwatch-actions": "^1.24.0",
+    "@aws-cdk/aws-dynamodb": "^1.24.0",
+    "@aws-cdk/aws-lambda": "^1.24.0",
+    "@aws-cdk/aws-sns": "^1.24.0",
+    "@aws-cdk/aws-sns-subscriptions": "^1.24.0",
+    "@aws-cdk/core": "^1.24.0",
+    "js-yaml": "^3.13.1"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^7.1.2",
+    "@types/js-yaml": "^3.12.2",
+    "@types/node": "^10.11.0",
+    "@typescript-eslint/eslint-plugin": "^2.20.0",
+    "@typescript-eslint/parser": "^2.20.0",
+    "ava": "^3.3.0",
+    "commitizen": "^3.0.0",
+    "coveralls": "^3.0.2",
+    "cz-conventional-changelog": "^2.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^25.1.0",
+    "jest-config": "^25.1.0",
+    "lint-staged": "^8.0.0",
+    "prettier": "^1.19.1",
+    "semantic-release": "^15.9.16",
+    "ts-node": "^8.6.2",
+    "tsconfig-paths": "^3.9.0",
+    "typedoc": "^0.17.0",
+    "typescript": "^3.0.3"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:prettier/recommended"
+    ]
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register",
+      "tsconfig-paths/register"
+    ]
+  }
+}
