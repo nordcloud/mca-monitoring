@@ -3,6 +3,8 @@ import { createSNSStack, NestedSNSStack } from './nestedSns';
 import { createLambdaMonitoring, NestedLambdaAlarmsStack } from './nestedLambda';
 import { createDynamoDBMonitoring, NestedTableAlarmsStack } from './nestedTable';
 import { createAccountAlarms, NestedAccountAlarmsStack } from './nestedAccount';
+import { createClusterAlarms, NestedClusterAlarmsStack } from './nestedECS';
+import { createApiGatewayAlarms, NestedApiGatewayAlarmsStack } from './nestedApiGateway';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -15,32 +17,59 @@ export class MonitoringStack extends cdk.Stack {
     this.snsStack = createSNSStack(this);
   }
 
-  // Get SNS stack for other monitoring
+  /**
+   * Get SNS stack for other monitoring
+   */
   public getSnsStack(): NestedSNSStack {
     return this.snsStack;
   }
 
-  // Setup lambda monitoring
+  /**
+   * Setup lambda monitoring
+   */
   public addDefaultLambdaMonitoring(): NestedLambdaAlarmsStack[] {
     return createLambdaMonitoring(this, this.snsStack);
   }
 
-  // Setup dynamodb monitoring
+  /**
+   * Setup dynamodb monitoring
+   */
   public addDefaultDynamoDBMonitoring(): NestedTableAlarmsStack[] {
     return createDynamoDBMonitoring(this, this.snsStack);
   }
 
-  // Setup account monitoring
+  /**
+   * Setup account monitoring
+   */
   public addDefaultAccountMonitoring(): NestedAccountAlarmsStack[] {
     return createAccountAlarms(this, this.snsStack);
   }
+
+  /**
+   * Setup cluster monitoring
+   */
+  public addDefaultClusterMonitoring(): NestedClusterAlarmsStack[] {
+    return createClusterAlarms(this, this.snsStack);
+  }
+
+  /**
+   * Setup Api Gateway monitoring
+   */
+  public addDefaultApiGatewayMonitoring(): NestedApiGatewayAlarmsStack[] {
+    return createApiGatewayAlarms(this, this.snsStack);
+  }
 }
 
+/**
+ * Setup default CDK app
+ */
 export function createApp(): cdk.Construct {
   return new cdk.App();
 }
 
-// Generate monitoring stack
+/**
+ * Generate monitoring stack
+ */
 export function setupMonitoringStack(app: cdk.Construct, id: string): MonitoringStack {
   return new MonitoringStack(app, id);
 }

@@ -102,7 +102,7 @@ export const getMetricConfig = (
   conf?: config.ConfigMetricAlarm,
 ): cw.MetricProps => {
   const combined = {
-    ...(config.getDefaultConfig(configType, metricName)?.metric || {}),
+    ...(config.configGetDefault(configType, metricName)?.metric || {}),
     ...(conf?.metric || {}),
   };
 

@@ -15,12 +15,7 @@ export class NestedSNSStack extends cfn.NestedStack {
   constructor(scope: cdk.Construct, id: string, props?: cfn.NestedStackProps) {
     super(scope, id, props);
 
-    const {
-      id: topicId,
-      name,
-      emails = [],
-      endpoints = []
-    } = config.getSNSTopics() || {};
+    const { id: topicId, name, emails = [], endpoints = [] } = config.configGetSNSTopic() || {};
 
     // Create topic
     this.topic = new sns.Topic(this, `${id}-topic`, {
@@ -51,9 +46,9 @@ export class NestedSNSStack extends cfn.NestedStack {
 }
 
 export function createSNSStack(stack: cdk.Stack): NestedSNSStack {
-  if (!config.getSNSTopics()) {
-    throw new Error('No SNS topics defined in the config')
+  if (!config.configGetSNSTopic()) {
+    throw new Error('No SNS topics defined in the config');
   }
 
-  return new NestedSNSStack(stack, stack.stackName + '-sns-topic')
+  return new NestedSNSStack(stack, stack.stackName + '-sns-topic');
 }

@@ -25,7 +25,7 @@ export class NestedAccountAlarmsStack extends cfn.NestedStack {
   }
 
   private setupAccountAlarm(metricName: string): void {
-    const autoResolve = config.autoResolve(config.ConfigDefaultType.Account, metricName);
+    const autoResolve = config.configAutoResolve(config.ConfigDefaultType.Account, metricName);
 
     const metric = new cw.Metric({
       ...getMetricConfig(config.ConfigDefaultType.Account, metricName),
@@ -35,7 +35,7 @@ export class NestedAccountAlarmsStack extends cfn.NestedStack {
     const alarm = metric.createAlarm(this, metricName, {
       ...getAlarmConfig(config.ConfigDefaultType.Account, metricName),
       alarmName: metricName,
-      actionsEnabled: config.isEnabled(config.ConfigDefaultType.Account, metricName),
+      actionsEnabled: config.configIsEnabled(config.ConfigDefaultType.Account, metricName),
     });
 
     this.snsStack.addAlarmActions(alarm, autoResolve);

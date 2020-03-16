@@ -64,7 +64,7 @@ export const getAlarmConfig = (
     evaluationPeriods: 2,
 
     // Add config values
-    ...(config.getDefaultConfig(configType, key)?.alarm || {}),
+    ...(config.configGetDefault(configType, key)?.alarm || {}),
     ...(conf?.alarm || {}),
   };
 

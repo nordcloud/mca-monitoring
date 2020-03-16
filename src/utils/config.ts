@@ -1,6 +1,9 @@
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 
+/**
+ * CLI config in the config file
+ */
 export interface ConfigCLI {
   version: number;
   profile: string;
@@ -50,6 +53,9 @@ export interface AlarmOptions {
 
 export type DimensionHash = { [dim: string]: object };
 
+/**
+ * Duration values
+ */
 export interface MetricDuration {
   milliseconds?: number;
   seconds?: number;
@@ -133,6 +139,8 @@ export interface ConfigCustomDefaults {
   lambda?: ConfigMetricAlarms;
   table?: ConfigMetricAlarms;
   account?: ConfigMetricAlarms;
+  cluster?: ConfigMetricAlarms;
+  apiGateway?: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomSNS {
@@ -144,76 +152,170 @@ export interface ConfigCustomSNS {
 
 export interface ConfigCustom {
   default: ConfigCustomDefaults;
-  snsTopics: ConfigCustomSNS;
+  snsTopic: ConfigCustomSNS;
 }
 
 export interface Config {
   cli: ConfigCLI;
   lambdas: ConfigLocals;
   tables: ConfigLocals;
+  clusters: ConfigLocals;
+  routes: ConfigLocals;
   custom: ConfigCustom;
 }
 
-export let configFile: Config;
+let configFile: Config | undefined;
 
-export const loadConfig = (configPath: string) => {
+/**
+ * Get full config file
+ */
+export function getConfigFile(): Config | undefined {
+  return configFile;
+}
+
+/**
+ * Load config file for use
+ */
+export function loadConfig(configPath: string): void {
   const configBuffer = fs.readFileSync(configPath);
   configFile = yaml.safeLoad(configBuffer.toString());
 }
 
-export const getSNSTopics = (): ConfigCustomSNS | undefined => {
-  return configFile?.custom?.snsTopics;
+/**
+ * Get SNS topic from config
+ */
+export const configGetSNSTopic = (): ConfigCustomSNS | undefined => {
+  return configFile?.custom?.snsTopic;
+};
+
+export enum ConfigLocalType {
+  Lambda = 'lambdas',
+  Table = 'tables',
+  Cluster = 'clusters',
+  ApiGateway = 'routes',
 }
-
-export const getLambdas = (): ConfigLocals => {
-  return configFile.lambdas || {};
-};
-
-export const getLambda = (name: string): ConfigLocal | undefined => {
-  return getLambdas()[name];
-};
-
-export const getSelectedLambdas = (names: string[]): ConfigLocals => {
-  return names.reduce((acc, name) => {
-    return { ...acc, [name]: getLambda(name) };
-  }, {});
-};
-
-export const getTables = (): ConfigLocals => {
-  return configFile.tables || {};
-};
-
-export const getTable = (name: string): ConfigLocal | undefined => {
-  return getTables()[name];
-};
-
-export const getSelectedTables = (names: string[]): ConfigLocals => {
-  return names.reduce((acc, name) => {
-    return { ...acc, [name]: getTable(name) };
-  }, {});
-};
 
 export enum ConfigDefaultType {
   Table = 'table',
   Lambda = 'lambda',
   Account = 'account',
+  Cluster = 'cluster',
+  ApiGateway = 'apiGateway',
 }
 
-export const getDefaultConfig = (configType: ConfigDefaultType, name: string): ConfigMetricAlarm | undefined => {
-  return configFile?.custom?.default?.[configType]?.[name];
-};
+/**
+ * @internal
+ *
+ * Convert local config type to default config
+ */
+function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType | undefined {
+  switch (confType) {
+    case ConfigLocalType.Lambda:
+      return ConfigDefaultType.Lambda;
+    case ConfigLocalType.Table:
+      return ConfigDefaultType.Table;
+    case ConfigLocalType.Cluster:
+      return ConfigDefaultType.Cluster;
+    case ConfigLocalType.ApiGateway:
+      return ConfigDefaultType.ApiGateway;
+    default:
+      return undefined;
+  }
+}
 
-export const isEnabled = (configType: ConfigDefaultType, name: string, localConfig?: ConfigMetricAlarm): boolean => {
+/**
+ * Get all local values for type
+ */
+export function configGetAll(confType: ConfigLocalType): ConfigLocals {
+  return configFile?.[confType] || {};
+}
+
+/**
+ * Get single config value for type
+ */
+export function configGetSingle(confType: ConfigLocalType, name: string): ConfigLocal | undefined {
+  return configGetAll(confType)[name];
+}
+
+/**
+ * Get selected configs for type with given names
+ */
+export function configGetSelected(confType: ConfigLocalType, names: string[]): ConfigLocals {
+  return names.reduce((acc, name) => {
+    const val = configGetSingle(confType, name);
+    if (val) {
+      return { ...acc, [name]: val };
+    }
+    return acc;
+  }, {});
+}
+
+/**
+ * Get default configs from config file
+ */
+export function configGetDefault(configType: ConfigDefaultType, metricName: string): ConfigMetricAlarm | undefined {
+  return configFile?.custom?.default?.[configType]?.[metricName];
+}
+
+/**
+ * Check if metric is enabled for local or default config
+ */
+export function configIsEnabled(
+  configType: ConfigDefaultType,
+  metricName: string,
+  localConfig?: ConfigMetricAlarm,
+): boolean {
   if (localConfig?.enabled === false) {
     return false;
   }
 
-  return getDefaultConfig(configType, name)?.enabled === true || localConfig?.enabled === true;
-};
+  return configGetDefault(configType, metricName)?.enabled === true || localConfig?.enabled === true;
+}
 
-export const autoResolve = (configType: ConfigDefaultType, name: string, localConfig?: ConfigMetricAlarm): boolean => {
+/**
+ * Check if autoresolve is enabled for local or default config
+ */
+export function configAutoResolve(
+  configType: ConfigDefaultType,
+  name: string,
+  localConfig?: ConfigMetricAlarm,
+): boolean {
   if (localConfig?.autoResolve === false) {
     return false;
   }
-  return getDefaultConfig(configType, name)?.autoResolve === true || localConfig?.autoResolve === true;
-};
+
+  return configGetDefault(configType, name)?.autoResolve === true || localConfig?.autoResolve === true;
+}
+
+/**
+ * Get all local values that are enabled in either local or default config
+ */
+export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]): ConfigLocals {
+  const all = configGetAll(confType);
+
+  return Object.keys(all).reduce((acc, key) => {
+    const local = all[key];
+
+    const defaultType = configLocalTypeToDefault(confType);
+    if (defaultType) {
+      // Check if any metric is enabled in default or local
+      let isEnabled = false;
+      for (const metricName in metrics) {
+        if (configIsEnabled(defaultType, metricName, local?.config)) {
+          isEnabled = true;
+        }
+      }
+
+      // Add only if at least one value is enabled
+      if (isEnabled) {
+        return { ...acc, [key]: local };
+      }
+
+      // Skip adding as none was enabled
+      return acc;
+    }
+
+    // Add by default if local to default conversion is not supported
+    return { ...acc, [key]: local };
+  }, {});
+}
