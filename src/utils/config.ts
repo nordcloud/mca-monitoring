@@ -1,5 +1,7 @@
+// Ignored due to issue with building postinstall
 // @ts-ignore
 import * as fs from 'fs';
+
 import * as yaml from 'js-yaml';
 
 /**
