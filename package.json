@@ -18,10 +18,10 @@
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --ext ts --fix",
     "test": "ava",
-    "build": "tsc --build tsconfig.json",
+    "build": "tsc --build ./tsconfig.json",
     "docs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "tsc --watch",
-    "prepare": "tsc --build tsconfig.json"
+    "prepare": "tsc --build ./tsconfig.json"
   },
   "prettier": {
     "semi": true,
