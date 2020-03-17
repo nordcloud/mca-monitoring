@@ -19,7 +19,8 @@
     "lint:fix": "eslint . --ext ts --fix",
     "test": "ava",
     "build": "tsc && typedoc --out docs --target es6 --theme minimal --mode file src",
-    "start": "tsc --watch"
+    "start": "tsc --watch",
+    "postinstall": "tsc"
   },
   "prettier": {
     "semi": true,
