@@ -174,11 +174,17 @@ export function getConfigFile(): Config | undefined {
 }
 
 /**
+ * Load config from string
+ */
+export function loadConfigString(config: string): void {
+  configFile = yaml.safeLoad(config);
+}
+
+/**
  * Load config file for use
  */
 export function loadConfig(configPath: string): void {
-  const configBuffer = fs.readFileSync(configPath);
-  configFile = yaml.safeLoad(configBuffer.toString());
+  loadConfigString(fs.readFileSync(configPath).toString());
 }
 
 /**
@@ -263,13 +269,14 @@ export function configGetDefault(configType: ConfigDefaultType, metricName: stri
 export function configIsEnabled(
   configType: ConfigDefaultType,
   metricName: string,
-  localConfig?: ConfigMetricAlarm,
+  localConfig?: ConfigMetricAlarms,
 ): boolean {
-  if (localConfig?.enabled === false) {
+  const local = localConfig?.[metricName]?.enabled;
+  if (local === false) {
     return false;
   }
 
-  return configGetDefault(configType, metricName)?.enabled === true || localConfig?.enabled === true;
+  return configGetDefault(configType, metricName)?.enabled === true || local === true;
 }
 
 /**
@@ -277,14 +284,15 @@ export function configIsEnabled(
  */
 export function configAutoResolve(
   configType: ConfigDefaultType,
-  name: string,
-  localConfig?: ConfigMetricAlarm,
+  metricName: string,
+  localConfig?: ConfigMetricAlarms,
 ): boolean {
-  if (localConfig?.autoResolve === false) {
+  const local = localConfig?.[metricName]?.autoResolve
+  if (local === false) {
     return false;
   }
 
-  return configGetDefault(configType, name)?.autoResolve === true || localConfig?.autoResolve === true;
+  return configGetDefault(configType, metricName)?.autoResolve === true || local === true;
 }
 
 /**
@@ -300,7 +308,7 @@ export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]
     if (defaultType) {
       // Check if any metric is enabled in default or local
       let isEnabled = false;
-      for (const metricName in metrics) {
+      for (const metricName of metrics) {
         if (configIsEnabled(defaultType, metricName, local?.config)) {
           isEnabled = true;
         }
