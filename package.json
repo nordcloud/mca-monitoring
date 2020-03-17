@@ -43,13 +43,13 @@
     "@aws-cdk/aws-sns": "^1.24.0",
     "@aws-cdk/aws-sns-subscriptions": "^1.24.0",
     "@aws-cdk/core": "^1.24.0",
+    "@types/js-yaml": "^3.12.2",
+    "@types/node": "^10.11.0",
     "js-yaml": "^3.13.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
     "@commitlint/config-conventional": "^7.1.2",
-    "@types/js-yaml": "^3.12.2",
-    "@types/node": "^10.11.0",
     "@typescript-eslint/eslint-plugin": "^2.20.0",
     "@typescript-eslint/parser": "^2.20.0",
     "ava": "^3.3.0",
