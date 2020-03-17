@@ -9,4 +9,4 @@ Separate library for MCA monitoring generated with MCA CLI.
 
 ## Documentation
 
-Building release with `npm run build` also builds HTML documentation to docs folder
+HTML documentation can be build with `npm run docs`. Generated files can be found in docs folder.
