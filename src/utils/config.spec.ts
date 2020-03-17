@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import * as config from './config';
-import { lambdaMetrics } from '../stacks/nestedLambda'
+import { lambdaMetrics } from '../stacks/nestedLambda';
 
 const testConfig = `
 cli:
@@ -156,7 +156,7 @@ custom:
     endpoints: []
     emails:
       - application-management@nordcloud.com
-`
+`;
 config.loadConfigString(testConfig);
 
 test('find all lambdas', t => {

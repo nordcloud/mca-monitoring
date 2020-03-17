@@ -287,7 +287,7 @@ export function configAutoResolve(
   metricName: string,
   localConfig?: ConfigMetricAlarms,
 ): boolean {
-  const local = localConfig?.[metricName]?.autoResolve
+  const local = localConfig?.[metricName]?.autoResolve;
   if (local === false) {
     return false;
   }
