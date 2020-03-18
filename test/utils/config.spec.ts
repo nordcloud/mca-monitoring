@@ -1,7 +1,7 @@
 import test from 'ava';
 
-import * as config from './config';
-import { lambdaMetrics } from '../stacks/nestedLambda';
+import * as config from '../../src/utils/config';
+import { lambdaMetrics } from '../../src/stacks/nestedLambda';
 
 const testConfig = `
 cli:
