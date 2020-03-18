@@ -5,6 +5,7 @@ import { createDynamoDBMonitoring, NestedTableAlarmsStack } from './nestedTable'
 import { createAccountAlarms, NestedAccountAlarmsStack } from './nestedAccount';
 import { createClusterAlarms, NestedClusterAlarmsStack } from './nestedECS';
 import { createApiGatewayAlarms, NestedApiGatewayAlarmsStack } from './nestedApiGateway';
+import { createCloudFrontAlarms, NestedCloudFrontAlarmsStack } from './nestedCloudFront';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -57,6 +58,13 @@ export class MonitoringStack extends cdk.Stack {
    */
   public addDefaultApiGatewayMonitoring(): NestedApiGatewayAlarmsStack[] {
     return createApiGatewayAlarms(this, this.snsStack);
+  }
+
+  /**
+   * Setup Cloudfront monitoring
+   */
+  public addDefaultCloudFrontMonitoring(): NestedCloudFrontAlarmsStack[] {
+    return createCloudFrontAlarms(this, this.snsStack);
   }
 }
 
