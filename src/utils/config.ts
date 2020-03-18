@@ -197,7 +197,7 @@ export function loadConfig(configPath: string): void {
  */
 export function configGetSNSTopic(): ConfigCustomSNS | undefined {
   return configFile?.custom?.snsTopic;
-};
+}
 
 export enum ConfigLocalType {
   Lambda = 'lambdas',

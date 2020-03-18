@@ -98,12 +98,18 @@ function getDuration(conf?: config.MetricDuration): cdk.Duration {
 
 export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string {
   switch (conf) {
-    case config.ConfigDefaultType.Lambda: return 'AWS/Lamba';
-    case config.ConfigDefaultType.Table: return 'AWS/DynamoDB';
-    case config.ConfigDefaultType.Account: return 'AWS/DynamoDB';
-    case config.ConfigDefaultType.Cluster: return 'AWS/ECS';
-    case config.ConfigDefaultType.ApiGateway: return 'AWS/ApiGateway';
-    case config.ConfigDefaultType.Cloudfront: return 'AWS/CloudFront';
+    case config.ConfigDefaultType.Lambda:
+      return 'AWS/Lamba';
+    case config.ConfigDefaultType.Table:
+      return 'AWS/DynamoDB';
+    case config.ConfigDefaultType.Account:
+      return 'AWS/DynamoDB';
+    case config.ConfigDefaultType.Cluster:
+      return 'AWS/ECS';
+    case config.ConfigDefaultType.ApiGateway:
+      return 'AWS/ApiGateway';
+    case config.ConfigDefaultType.Cloudfront:
+      return 'AWS/CloudFront';
   }
 }
 
@@ -128,4 +134,4 @@ export function getMetricConfig(
   };
 
   return obj;
-};
+}
