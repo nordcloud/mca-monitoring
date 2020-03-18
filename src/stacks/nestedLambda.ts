@@ -31,7 +31,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 
       if (lambdaConfig) {
         // Load lambda from existing arn
-        const fn = lambda.Function.fromFunctionArn(this, name, lambdaConfig.arn);
+        const fn = lambda.Function.fromFunctionArn(this, name, lambdaConfig?.arn || '');
 
         // Setup lambda alarms
         this.setupLambdaAlarm(name, 'errors', fn.metricErrors(), lambdaConfig);

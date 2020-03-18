@@ -130,7 +130,7 @@ export interface ConfigMetricAlarms {
 }
 
 export interface ConfigLocal {
-  arn: string;
+  arn?: string;
   config?: ConfigMetricAlarms;
 }
 
@@ -144,6 +144,7 @@ export interface ConfigCustomDefaults {
   account?: ConfigMetricAlarms;
   cluster?: ConfigMetricAlarms;
   apiGateway?: ConfigMetricAlarms;
+  cloudfront?: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomSNS {
@@ -160,10 +161,11 @@ export interface ConfigCustom {
 
 export interface Config {
   cli: ConfigCLI;
-  lambdas: ConfigLocals;
-  tables: ConfigLocals;
-  clusters: ConfigLocals;
-  routes: ConfigLocals;
+  lambdas?: ConfigLocals;
+  tables?: ConfigLocals;
+  clusters?: ConfigLocals;
+  routes?: ConfigLocals;
+  distributions?: ConfigLocals;
   custom: ConfigCustom;
 }
 
@@ -193,7 +195,7 @@ export function loadConfig(configPath: string): void {
 /**
  * Get SNS topic from config
  */
-export const configGetSNSTopic = (): ConfigCustomSNS | undefined => {
+export function configGetSNSTopic(): ConfigCustomSNS | undefined {
   return configFile?.custom?.snsTopic;
 };
 
@@ -202,6 +204,7 @@ export enum ConfigLocalType {
   Table = 'tables',
   Cluster = 'clusters',
   ApiGateway = 'routes',
+  Cloudfront = 'distributions',
 }
 
 export enum ConfigDefaultType {
@@ -210,6 +213,7 @@ export enum ConfigDefaultType {
   Account = 'account',
   Cluster = 'cluster',
   ApiGateway = 'apiGateway',
+  Cloudfront = 'cloudfront',
 }
 
 /**
@@ -217,7 +221,7 @@ export enum ConfigDefaultType {
  *
  * Convert local config type to default config
  */
-function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType | undefined {
+export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType | undefined {
   switch (confType) {
     case ConfigLocalType.Lambda:
       return ConfigDefaultType.Lambda;
@@ -227,6 +231,30 @@ function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType 
       return ConfigDefaultType.Cluster;
     case ConfigLocalType.ApiGateway:
       return ConfigDefaultType.ApiGateway;
+    case ConfigLocalType.Cloudfront:
+      return ConfigDefaultType.Cloudfront;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * @internal
+ *
+ * Convert local config type to default config
+ */
+export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLocalType | undefined {
+  switch (confType) {
+    case ConfigDefaultType.Lambda:
+      return ConfigLocalType.Lambda;
+    case ConfigDefaultType.Table:
+      return ConfigLocalType.Table;
+    case ConfigDefaultType.Cluster:
+      return ConfigLocalType.Cluster;
+    case ConfigDefaultType.ApiGateway:
+      return ConfigLocalType.ApiGateway;
+    case ConfigDefaultType.Cloudfront:
+      return ConfigLocalType.Cloudfront;
     default:
       return undefined;
   }

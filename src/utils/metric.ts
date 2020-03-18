@@ -96,25 +96,35 @@ function getDuration(conf?: config.MetricDuration): cdk.Duration {
   return defaultDuration;
 }
 
-export const getMetricConfig = (
+export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string {
+  switch (conf) {
+    case config.ConfigDefaultType.Lambda: return 'AWS/Lamba';
+    case config.ConfigDefaultType.Table: return 'AWS/DynamoDB';
+    case config.ConfigDefaultType.Account: return 'AWS/DynamoDB';
+    case config.ConfigDefaultType.Cluster: return 'AWS/ECS';
+    case config.ConfigDefaultType.ApiGateway: return 'AWS/ApiGateway';
+    case config.ConfigDefaultType.Cloudfront: return 'AWS/CloudFront';
+  }
+}
+
+export function getMetricConfig(
   configType: config.ConfigDefaultType,
   metricName: string,
   conf?: config.ConfigMetricAlarm,
-): cw.MetricProps => {
+): cw.MetricProps {
   const combined = {
     ...(config.configGetDefault(configType, metricName)?.metric || {}),
     ...(conf?.metric || {}),
   };
 
   const obj: cw.MetricProps = {
-    namespace: 'AWS/DynamoDB',
-
     ...combined,
     unit: getUnit(combined.unit),
     period: getDuration(combined.period),
 
     // To make sure these are not overriden by config
     metricName,
+    namespace: defaultConfigToNameSpace(configType),
   };
 
   return obj;

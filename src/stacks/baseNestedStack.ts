@@ -10,6 +10,7 @@ import { getMetricConfig } from '../utils/metric';
 export default class BaseNestedStack extends cfn.NestedStack {
   protected readonly snsStack: NestedSNSStack;
   protected readonly defaultType: config.ConfigDefaultType;
+  protected readonly localType?: config.ConfigLocalType;
 
   constructor(
     scope: cdk.Construct,
@@ -21,6 +22,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     super(scope, id, props);
 
     this.defaultType = defaultType;
+    this.localType = config.configDefaultTypeToLocal(defaultType);
     this.snsStack = snsStack;
   }
 
@@ -38,13 +40,13 @@ export default class BaseNestedStack extends cfn.NestedStack {
     }
 
     const metric = new cw.Metric({
-      ...getMetricConfig(config.ConfigDefaultType.ApiGateway, metricName),
+      ...getMetricConfig(this.defaultType, metricName),
       dimensions,
     });
 
     const alarmName = `${localName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(config.ConfigDefaultType.ApiGateway, metricName),
+      ...getAlarmConfig(this.defaultType, metricName),
       alarmName,
     });
 
