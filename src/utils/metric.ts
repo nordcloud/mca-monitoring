@@ -66,7 +66,7 @@ function getUnit(str?: string): cw.Unit | undefined {
   }
 }
 
-function getDuration(conf?: config.MetricDuration): cdk.Duration {
+export function getDuration(conf?: config.MetricDuration): cdk.Duration {
   const defaultDuration = cdk.Duration.minutes(5);
 
   if (!conf) {
@@ -116,11 +116,11 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
 export function getMetricConfig(
   configType: config.ConfigDefaultType,
   metricName: string,
-  conf?: config.ConfigMetricAlarm,
+  conf?: config.ConfigMetricAlarms,
 ): cw.MetricProps {
   const combined = {
     ...(config.configGetDefault(configType, metricName)?.metric || {}),
-    ...(conf?.metric || {}),
+    ...(conf?.[metricName] || {}),
   };
 
   const obj: cw.MetricProps = {

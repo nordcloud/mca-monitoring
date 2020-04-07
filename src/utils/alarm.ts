@@ -55,8 +55,8 @@ function getTreatMissingData(str?: string): cw.TreatMissingData {
 
 export const getAlarmConfig = (
   configType: config.ConfigDefaultType,
-  key: string,
-  conf?: config.ConfigMetricAlarm,
+  alarmName: string,
+  conf?: config.ConfigMetricAlarms,
 ): cw.CreateAlarmOptions => {
   const combined: config.AlarmOptions = {
     // Add required default values
@@ -64,8 +64,8 @@ export const getAlarmConfig = (
     evaluationPeriods: 2,
 
     // Add config values
-    ...(config.configGetDefault(configType, key)?.alarm || {}),
-    ...(conf?.alarm || {}),
+    ...(config.configGetDefault(configType, alarmName)?.alarm || {}),
+    ...(conf?.[alarmName]?.alarm || {}),
   };
 
   // Generate initial config

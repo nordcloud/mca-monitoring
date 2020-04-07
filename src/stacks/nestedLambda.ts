@@ -52,7 +52,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 
     const alarmName = `${lambdaName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, conf?.config?.alarm),
+      ...getAlarmConfig(this.defaultType, metricName, conf?.config),
       alarmName,
     });
 

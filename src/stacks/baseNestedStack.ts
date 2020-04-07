@@ -40,13 +40,13 @@ export default class BaseNestedStack extends cfn.NestedStack {
     }
 
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName),
+      ...getMetricConfig(this.defaultType, metricName, localConf?.config),
       dimensions,
     });
 
     const alarmName = `${localName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName),
+      ...getAlarmConfig(this.defaultType, metricName, localConf?.config),
       alarmName,
     });
 
