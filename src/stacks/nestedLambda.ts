@@ -27,11 +27,16 @@ const localType = config.ConfigLocalType.Lambda;
 
 function getAliases(metricName: string): string[] {
   switch (metricName) {
-    case 'Invocations': return ['invocations']
-    case 'Errors': return ['errors']
-    case 'Duration': return ['duration']
-    case 'Throtles': return ['throttles']
-    default: return []
+    case 'Invocations':
+      return ['invocations'];
+    case 'Errors':
+      return ['errors'];
+    case 'Duration':
+      return ['duration'];
+    case 'Throtles':
+      return ['throttles'];
+    default:
+      return [];
   }
 }
 
@@ -55,8 +60,8 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 
       lambdaMetrics.forEach(metricName => {
         const opts = {
-          aliases: getAliases(metricName)
-        }
+          aliases: getAliases(metricName),
+        };
         this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions, opts);
       });
     });

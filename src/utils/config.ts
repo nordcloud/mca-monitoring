@@ -129,13 +129,8 @@ export interface ConfigMetricAlarms {
   [key: string]: ConfigMetricAlarm;
 }
 
-export interface ConfigLocal {
-  arn?: string;
-  config?: ConfigMetricAlarms;
-}
-
 export interface ConfigLocals {
-  [key: string]: ConfigLocal;
+  [key: string]: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomDefaults {
@@ -270,7 +265,7 @@ export function configGetAll(confType: ConfigLocalType): ConfigLocals {
 /**
  * Get single config value for type
  */
-export function configGetSingle(confType: ConfigLocalType, name: string): ConfigLocal | undefined {
+export function configGetSingle(confType: ConfigLocalType, name: string): ConfigMetricAlarms | undefined {
   return configGetAll(confType)[name];
 }
 
@@ -329,7 +324,11 @@ export function configAutoResolve(
 /**
  * Get all local values that are enabled in either local or default config
  */
-export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[], aliasFn?: (name: string) => string[]): ConfigLocals {
+export function configGetAllEnabled(
+  confType: ConfigLocalType,
+  metrics: string[],
+  aliasFn?: (name: string) => string[],
+): ConfigLocals {
   const all = configGetAll(confType);
 
   return Object.keys(all).reduce((acc, key) => {
@@ -340,19 +339,18 @@ export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]
       // Check if any metric is enabled in default or local
       let isEnabled = false;
       for (const metricName of metrics) {
-
         // Check if there is alias config that is found
         let metricAlias = undefined;
         if (aliasFn) {
           for (const aliasName in aliasFn(metricName)) {
-            if (local?.config?.[aliasName] || configGetDefault(defaultType, aliasName)) {
+            if (local?.[aliasName] || configGetDefault(defaultType, aliasName)) {
               metricAlias = aliasName;
-              break
+              break;
             }
           }
         }
 
-        if (configIsEnabled(defaultType, metricAlias || metricName, local?.config)) {
+        if (configIsEnabled(defaultType, metricAlias || metricName, local)) {
           isEnabled = true;
         }
       }

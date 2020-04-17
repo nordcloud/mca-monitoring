@@ -14,52 +14,58 @@ cli:
   excludes: []
 lambdas:
   lambda-1:
-    arn: 'arn:aws:lambda:eu-west-1:id:function:lambda-1'
-    config:
-      errors:
-        enabled: true
-  lambda-2:
-    arn: 'arn:aws:lambda:eu-west-1:id:function:lambda-2'
-    config: {}
+    Errors:
+      enabled: true
+  lambda-2: {}
 tables:
-  table-1:
-    arn: 'arn:aws:dynamodb:eu-west-1:id:table/table-1'
-    config: {}
+  table-1: {}
 clusters:
-  cluster-1:
-    arn: 'arn:aws:ecs:eu-west-1:id:cluster/cluster-1'
-    config: {}
+  cluster-1: {}
 routes:
-  route-1:
-    arn: 'arn:aws:apigateway:eu-west-1:id:route/route-1'
-    config: {}
+  route-1: {}
 custom:
   default:
     lambda:
-      errors:
+      Errors:
         enabled: false
         alarm:
           treatMissingData: 'NOT_BREACHING'
           threshold: 10
-          evaluationPeriods: 5
-      invocations:
+          evaluationPeriods: 1
+        metric:
+          period:
+            minutes: 5
+          statistic: Sum
+      Invocations:
         enabled: false
         alarm:
           treatMissingData: 'NOT_BREACHING'
           threshold: 200
-          evaluationPeriods: 5
-      duration:
+          evaluationPeriods: 1
+        metric:
+          period:
+            minutes: 5
+          statistic: Sum
+      Duration:
         enabled: false
         alarm:
           treatMissingData: 'NOT_BREACHING'
           threshold: 2000
-          evaluationPeriods: 5
-      throttles:
+          evaluationPeriods: 1
+        metric:
+          period:
+            minutes: 5
+          statistic: Maximum
+      Throttles:
         enabled: false
         alarm:
           treatMissingData: 'NOT_BREACHING'
           threshold: 10
-          evaluationPeriods: 5
+          evaluationPeriods: 1
+        metric:
+          period:
+            minutes: 5
+          statistic: Sum
     table:
       ConsumedReadCapacityUnits:
         enabled: true
