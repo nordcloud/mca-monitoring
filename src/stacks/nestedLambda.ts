@@ -36,7 +36,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
   ) {
     super(scope, id, snsStack, defaultType, props);
 
-    // Setup tables
+    // Setup lambdas
     Object.keys(lambdas).forEach(lambdaName => {
       const lambdaConfig = lambdas[lambdaName];
       const dimensions = {
