@@ -7,6 +7,10 @@ import { NestedSNSStack } from './nestedSns';
 import { getAlarmConfig } from '../utils/alarm';
 import { getMetricConfig } from '../utils/metric';
 
+export interface SetupAlarmOpts {
+  alias?: string[];
+}
+
 export default class BaseNestedStack extends cfn.NestedStack {
   protected readonly snsStack: NestedSNSStack;
   protected readonly defaultType: config.ConfigDefaultType;
@@ -31,6 +35,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     metricName: string,
     localConf: config.ConfigLocal,
     dimensions?: object,
+    opts?: SetupAlarmOpts,
   ): void {
     const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf?.config);
     const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf?.config);
@@ -39,14 +44,25 @@ export default class BaseNestedStack extends cfn.NestedStack {
       return;
     }
 
+    let alias = undefined;
+    if (opts?.alias) {
+      // Check if any of the aliases returns config
+      for (const metric in [metricName, ...opts.alias]) {
+        if (Object.keys(getMetricConfig(this.defaultType, metricName, localConf?.config)).length !== 0) {
+          alias = metric;
+          break;
+        }
+      }
+    }
+
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName, localConf?.config),
+      ...getMetricConfig(this.defaultType, metricName, localConf?.config, alias),
       dimensions,
     });
 
     const alarmName = `${localName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, localConf?.config),
+      ...getAlarmConfig(this.defaultType, alias || metricName, localConf?.config),
       alarmName,
     });
 

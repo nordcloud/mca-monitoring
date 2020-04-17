@@ -117,10 +117,11 @@ export function getMetricConfig(
   configType: config.ConfigDefaultType,
   metricName: string,
   conf?: config.ConfigMetricAlarms,
+  metricAlias?: string,
 ): cw.MetricProps {
   const combined = {
-    ...(config.configGetDefault(configType, metricName)?.metric || {}),
-    ...(conf?.[metricName] || {}),
+    ...(config.configGetDefault(configType, metricAlias || metricName)?.metric || {}),
+    ...(conf?.[metricAlias || metricName] || {}),
   };
 
   const obj: cw.MetricProps = {
