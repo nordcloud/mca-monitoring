@@ -47,7 +47,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     let alias = undefined;
     if (opts?.aliases) {
       // Check if any of the aliases returns config
-      for (const metric in [metricName, ...opts.alias]) {
+      for (const metric in [metricName, ...opts.aliases]) {
         if (Object.keys(getMetricConfig(this.defaultType, metricName, localConf?.config)).length !== 0) {
           alias = metric;
           break;
