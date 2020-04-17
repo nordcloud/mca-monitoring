@@ -8,7 +8,7 @@ import { getAlarmConfig } from '../utils/alarm';
 import { getMetricConfig } from '../utils/metric';
 
 export interface SetupAlarmOpts {
-  alias?: string[];
+  aliases?: string[];
 }
 
 export default class BaseNestedStack extends cfn.NestedStack {
@@ -45,7 +45,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     }
 
     let alias = undefined;
-    if (opts?.alias) {
+    if (opts?.aliases) {
       // Check if any of the aliases returns config
       for (const metric in [metricName, ...opts.alias]) {
         if (Object.keys(getMetricConfig(this.defaultType, metricName, localConf?.config)).length !== 0) {

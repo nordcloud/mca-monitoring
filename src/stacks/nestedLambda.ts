@@ -1,7 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
@@ -56,11 +54,10 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
       };
 
       lambdaMetrics.forEach(metricName => {
-        switch (metricName) {
-          case 'Errors':
-            this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions);
+        const opts = {
+          aliases: getAliases(metricName)
         }
-
+        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions, opts);
       });
     });
   }
