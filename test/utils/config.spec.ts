@@ -181,9 +181,9 @@ test('find only enabled lambdas', t => {
 });
 
 test('get metric config', t => {
-  const local = config.configGetSingle(config.ConfigLocalType.Lambda, 'lambda-1')
+  const local = config.configGetSingle(config.ConfigLocalType.Lambda, 'lambda-1');
   const confType = config.ConfigDefaultType.Lambda;
-  const conf = getMetricConfig(confType, 'Errors', local)
-  t.is(conf.namespace, 'AWS/Lambda')
-  t.is(conf.statistic, 'Sum')
-})
+  const conf = getMetricConfig(confType, 'Errors', local);
+  t.is(conf.namespace, 'AWS/Lambda');
+  t.is(conf.statistic, 'Sum');
+});

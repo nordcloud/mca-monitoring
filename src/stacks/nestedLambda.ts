@@ -25,21 +25,6 @@ export const lambdaMetrics = [
 const defaultType = config.ConfigDefaultType.Lambda;
 const localType = config.ConfigLocalType.Lambda;
 
-function getAliases(metricName: string): string[] {
-  switch (metricName) {
-    case 'Invocations':
-      return ['invocations'];
-    case 'Errors':
-      return ['errors'];
-    case 'Duration':
-      return ['duration'];
-    case 'Throtles':
-      return ['throttles'];
-    default:
-      return [];
-  }
-}
-
 // Generate nested stack for lambda alarms
 export class NestedLambdaAlarmsStack extends BaseNestedStack {
   constructor(
@@ -59,10 +44,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
       };
 
       lambdaMetrics.forEach(metricName => {
-        const opts = {
-          aliases: getAliases(metricName),
-        };
-        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions, opts);
+        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions);
       });
     });
   }
@@ -70,7 +52,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 
 // Setup lambda alarms
 export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLambdaAlarmsStack[] {
-  const lambdas = config.configGetAllEnabled(localType, lambdaMetrics, getAliases);
+  const lambdas = config.configGetAllEnabled(localType, lambdaMetrics);
   const lambdaKeys: string[] = Object.keys(lambdas);
 
   // Nothing to create

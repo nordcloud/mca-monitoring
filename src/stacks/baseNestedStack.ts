@@ -35,7 +35,6 @@ export default class BaseNestedStack extends cfn.NestedStack {
     metricName: string,
     localConf: config.ConfigMetricAlarms,
     dimensions?: object,
-    opts?: SetupAlarmOpts,
   ): void {
     const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf);
     const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf);
@@ -44,25 +43,14 @@ export default class BaseNestedStack extends cfn.NestedStack {
       return;
     }
 
-    let alias = undefined;
-    if (opts?.aliases) {
-      // Check if any of the aliases returns config
-      for (const metric in [metricName, ...opts.aliases]) {
-        if (Object.keys(getMetricConfig(this.defaultType, metric, localConf)).length !== 0) {
-          alias = metric;
-          break;
-        }
-      }
-    }
-
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName, localConf, alias),
+      ...getMetricConfig(this.defaultType, metricName, localConf),
       dimensions,
     });
 
     const alarmName = `${localName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, alias || metricName, localConf),
+      ...getAlarmConfig(this.defaultType, metricName, localConf),
       alarmName,
     });
 

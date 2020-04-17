@@ -324,11 +324,7 @@ export function configAutoResolve(
 /**
  * Get all local values that are enabled in either local or default config
  */
-export function configGetAllEnabled(
-  confType: ConfigLocalType,
-  metrics: string[],
-  aliasFn?: (name: string) => string[],
-): ConfigLocals {
+export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]): ConfigLocals {
   const all = configGetAll(confType);
 
   return Object.keys(all).reduce((acc, key) => {
@@ -339,19 +335,9 @@ export function configGetAllEnabled(
       // Check if any metric is enabled in default or local
       let isEnabled = false;
       for (const metricName of metrics) {
-        // Check if there is alias config that is found
-        let metricAlias = undefined;
-        if (aliasFn) {
-          for (const aliasName in aliasFn(metricName)) {
-            if (local?.[aliasName] || configGetDefault(defaultType, aliasName)) {
-              metricAlias = aliasName;
-              break;
-            }
-          }
-        }
-
-        if (configIsEnabled(defaultType, metricAlias || metricName, local)) {
+        if (configIsEnabled(defaultType, metricName, local)) {
           isEnabled = true;
+          break;
         }
       }
 
