@@ -1,15 +1,26 @@
 import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { getAlarmConfig } from '../utils/alarm';
 import { chunk } from '../utils/utils';
 
-export const lambdaMetrics = ['errors', 'invaocations', 'duration', 'throttles'];
+export const lambdaMetrics = [
+  'Invocations',
+  'Errors',
+  'DeadLetterErrors',
+  'DestinationDeliveryFailures',
+  'Throttles',
+  'ProvisionedConcurrencyInvocations',
+  'ProvisionedConcurrencySpilloverInvocations',
+  'Duration',
+  'IteratorAge',
+  'ConcurrencyExecutions',
+  'ProvisionedConcurrencyExecutions',
+  'ProvisionedConcurrencyUtilizations',
+  'UnreservedConcurrentExecutions',
+];
 
 const defaultType = config.ConfigDefaultType.Lambda;
 const localType = config.ConfigLocalType.Lambda;
@@ -17,7 +28,7 @@ const localType = config.ConfigLocalType.Lambda;
 // Generate nested stack for lambda alarms
 export class NestedLambdaAlarmsStack extends BaseNestedStack {
   constructor(
-    scope: cdk.Stack,
+    scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
     lambdas: config.ConfigLocals,
@@ -26,37 +37,16 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
     super(scope, id, snsStack, defaultType, props);
 
     // Setup lambdas
-    Object.keys(lambdas).forEach(name => {
-      const lambdaConfig = lambdas[name];
+    Object.keys(lambdas).forEach(lambdaName => {
+      const lambdaConfig = lambdas[lambdaName];
+      const dimensions = {
+        FunctionName: lambdaName,
+      };
 
-      if (lambdaConfig) {
-        // Load lambda from existing arn
-        const fn = lambda.Function.fromFunctionArn(this, name, lambdaConfig?.arn || '');
-
-        // Setup lambda alarms
-        this.setupLambdaAlarm(name, 'errors', fn.metricErrors(), lambdaConfig);
-        this.setupLambdaAlarm(name, 'invocations', fn.metricInvocations(), lambdaConfig);
-        this.setupLambdaAlarm(name, 'duration', fn.metricDuration(), lambdaConfig);
-        this.setupLambdaAlarm(name, 'throttles', fn.metricThrottles(), lambdaConfig);
-      }
+      lambdaMetrics.forEach(metricName => {
+        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions);
+      });
     });
-  }
-
-  private setupLambdaAlarm(lambdaName: string, metricName: string, metric: cw.Metric, conf?: config.ConfigLocal): void {
-    const autoResolve = config.configAutoResolve(this.defaultType, metricName, conf?.config);
-    const isEnabled = config.configIsEnabled(this.defaultType, metricName, conf?.config);
-
-    if (!isEnabled) {
-      return;
-    }
-
-    const alarmName = `${lambdaName}-${metricName}`;
-    const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, conf?.config),
-      alarmName,
-    });
-
-    this.snsStack.addAlarmActions(alarm, autoResolve);
   }
 }
 

@@ -129,13 +129,8 @@ export interface ConfigMetricAlarms {
   [key: string]: ConfigMetricAlarm;
 }
 
-export interface ConfigLocal {
-  arn?: string;
-  config?: ConfigMetricAlarms;
-}
-
 export interface ConfigLocals {
-  [key: string]: ConfigLocal;
+  [key: string]: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomDefaults {
@@ -270,7 +265,7 @@ export function configGetAll(confType: ConfigLocalType): ConfigLocals {
 /**
  * Get single config value for type
  */
-export function configGetSingle(confType: ConfigLocalType, name: string): ConfigLocal | undefined {
+export function configGetSingle(confType: ConfigLocalType, name: string): ConfigMetricAlarms | undefined {
   return configGetAll(confType)[name];
 }
 
@@ -340,8 +335,9 @@ export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]
       // Check if any metric is enabled in default or local
       let isEnabled = false;
       for (const metricName of metrics) {
-        if (configIsEnabled(defaultType, metricName, local?.config)) {
+        if (configIsEnabled(defaultType, metricName, local)) {
           isEnabled = true;
+          break;
         }
       }
 

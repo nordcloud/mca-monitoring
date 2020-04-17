@@ -7,6 +7,10 @@ import { NestedSNSStack } from './nestedSns';
 import { getAlarmConfig } from '../utils/alarm';
 import { getMetricConfig } from '../utils/metric';
 
+export interface SetupAlarmOpts {
+  aliases?: string[];
+}
+
 export default class BaseNestedStack extends cfn.NestedStack {
   protected readonly snsStack: NestedSNSStack;
   protected readonly defaultType: config.ConfigDefaultType;
@@ -29,24 +33,24 @@ export default class BaseNestedStack extends cfn.NestedStack {
   protected setupAlarm(
     localName: string,
     metricName: string,
-    localConf: config.ConfigLocal,
+    localConf: config.ConfigMetricAlarms,
     dimensions?: object,
   ): void {
-    const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf?.config);
-    const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf?.config);
+    const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf);
+    const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf);
 
     if (!isEnabled) {
       return;
     }
 
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName, localConf?.config),
+      ...getMetricConfig(this.defaultType, metricName, localConf),
       dimensions,
     });
 
     const alarmName = `${localName}-${metricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, localConf?.config),
+      ...getAlarmConfig(this.defaultType, metricName, localConf),
       alarmName,
     });
 
