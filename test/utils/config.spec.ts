@@ -1,6 +1,7 @@
 import test from 'ava';
 
 import * as config from '../../src/utils/config';
+import { getMetricConfig } from '../../src/utils/metric';
 import { lambdaMetrics } from '../../src/stacks/nestedLambda';
 
 const testConfig = `
@@ -36,6 +37,7 @@ custom:
           period:
             minutes: 5
           statistic: Sum
+          unit: 'COUNT'
       Invocations:
         enabled: false
         alarm:
@@ -46,6 +48,7 @@ custom:
           period:
             minutes: 5
           statistic: Sum
+          unit: 'COUNT'
       Duration:
         enabled: false
         alarm:
@@ -56,6 +59,7 @@ custom:
           period:
             minutes: 5
           statistic: Maximum
+          unit: 'MILLISECONDS'
       Throttles:
         enabled: false
         alarm:
@@ -66,6 +70,7 @@ custom:
           period:
             minutes: 5
           statistic: Sum
+          unit: 'COUNT'
     table:
       ConsumedReadCapacityUnits:
         enabled: true
@@ -174,3 +179,11 @@ test('find only enabled lambdas', t => {
   const enabled = config.configGetAllEnabled(config.ConfigLocalType.Lambda, lambdaMetrics);
   t.is(Object.keys(enabled).length, 1);
 });
+
+test('get metric config', t => {
+  const local = config.configGetSingle(config.ConfigLocalType.Lambda, 'lambda-1')
+  const confType = config.ConfigDefaultType.Lambda;
+  const conf = getMetricConfig(confType, 'Errors', local)
+  t.is(conf.namespace, 'AWS/Lambda')
+  t.is(conf.statistic, 'Sum')
+})

@@ -99,7 +99,7 @@ export function getDuration(conf?: config.MetricDuration): cdk.Duration {
 export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string {
   switch (conf) {
     case config.ConfigDefaultType.Lambda:
-      return 'AWS/Lamba';
+      return 'AWS/Lambda';
     case config.ConfigDefaultType.Table:
       return 'AWS/DynamoDB';
     case config.ConfigDefaultType.Account:
