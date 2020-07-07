@@ -141,6 +141,7 @@ export interface ConfigCustomDefaults {
   apiGateway?: ConfigMetricAlarms;
   cloudfront?: ConfigMetricAlarms;
   rds?: ConfigMetricAlarms;
+  eks?: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomSNS {
@@ -163,6 +164,7 @@ export interface Config {
   routes?: ConfigLocals;
   distributions?: ConfigLocals;
   rdsInstances?: ConfigLocals;
+  eksClusters?: ConfigLocals;
   custom: ConfigCustom;
 }
 
@@ -203,6 +205,7 @@ export enum ConfigLocalType {
   ApiGateway = 'routes',
   Cloudfront = 'distributions',
   RdsInstance = 'rdsInstances',
+  EksCluster = 'eksClusters',
 }
 
 export enum ConfigDefaultType {
@@ -213,6 +216,7 @@ export enum ConfigDefaultType {
   ApiGateway = 'apiGateway',
   Cloudfront = 'cloudfront',
   RdsInstance = 'rds',
+  EksCluster = 'eks',
 }
 
 /**
