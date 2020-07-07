@@ -181,7 +181,7 @@ export function getConfigFile(): Config | undefined {
  * Load config from string
  */
 export function loadConfigString(config: string): void {
-  configFile = yaml.safeLoad(config);
+  configFile = yaml.safeLoad(config) as Config;
 }
 
 /**
