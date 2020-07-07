@@ -110,6 +110,8 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
       return 'AWS/ApiGateway';
     case config.ConfigDefaultType.Cloudfront:
       return 'AWS/CloudFront';
+    case config.ConfigDefaultType.RdsInstance:
+      return 'AWS/RDS';
   }
 }
 

@@ -6,6 +6,7 @@ import { createAccountAlarms, NestedAccountAlarmsStack } from './nestedAccount';
 import { createClusterAlarms, NestedClusterAlarmsStack } from './nestedECS';
 import { createApiGatewayAlarms, NestedApiGatewayAlarmsStack } from './nestedApiGateway';
 import { createCloudFrontAlarms, NestedCloudFrontAlarmsStack } from './nestedCloudFront';
+import { createRDSMonitoring, NestedRDSAlarmsStack } from './nestedRDS';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -66,6 +67,14 @@ export class MonitoringStack extends cdk.Stack {
   public addDefaultCloudFrontMonitoring(): NestedCloudFrontAlarmsStack[] {
     return createCloudFrontAlarms(this, this.snsStack);
   }
+
+  /**
+   * Setup RDS monitoring
+   */
+  public addDefaultRDSMonitoring(): NestedRDSAlarmsStack[] {
+    return createRDSMonitoring(this, this.snsStack);
+  }
+
 }
 
 /**
