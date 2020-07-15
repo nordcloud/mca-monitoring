@@ -252,6 +252,10 @@ export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefau
       return ConfigDefaultType.ApiGateway;
     case ConfigLocalType.Cloudfront:
       return ConfigDefaultType.Cloudfront;
+    case ConfigLocalType.RdsInstance:
+      return ConfigDefaultType.RdsInstance;
+    case ConfigLocalType.EksCluster:
+      return ConfigDefaultType.EksCluster;
     case ConfigLocalType.LogGroup:
       return ConfigDefaultType.LogGroup;
     default:
@@ -276,6 +280,10 @@ export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLoc
       return ConfigLocalType.ApiGateway;
     case ConfigDefaultType.Cloudfront:
       return ConfigLocalType.Cloudfront;
+    case ConfigDefaultType.RdsInstance:
+      return ConfigLocalType.RdsInstance;
+    case ConfigDefaultType.EksCluster:
+      return ConfigLocalType.EksCluster;
     case ConfigDefaultType.LogGroup:
       return ConfigLocalType.LogGroup;
     default:
