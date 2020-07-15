@@ -114,6 +114,8 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
       return 'AWS/RDS';
     case config.ConfigDefaultType.EksCluster:
       return 'AWS/EKS';
+    case config.ConfigDefaultType.LogGroup:
+      return 'Custom';
   }
 }
 

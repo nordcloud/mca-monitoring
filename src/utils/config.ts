@@ -118,6 +118,10 @@ export interface MetricOptions {
   readonly color?: string;
 }
 
+export interface MetricFilterOptions {
+  pattern?: string;
+}
+
 export interface ConfigMetricAlarm {
   enabled?: boolean;
   autoResolve?: boolean;
@@ -127,6 +131,14 @@ export interface ConfigMetricAlarm {
 
 export interface ConfigMetricAlarms {
   [key: string]: ConfigMetricAlarm;
+}
+
+export interface ConfigLogGroupAlarm extends ConfigMetricAlarm {
+  filter?: MetricFilterOptions;
+}
+
+export interface ConfigLogGroupAlarms {
+  [key: string]: ConfigLogGroupAlarm;
 }
 
 export interface ConfigLocals {
@@ -142,6 +154,7 @@ export interface ConfigCustomDefaults {
   cloudfront?: ConfigMetricAlarms;
   rds?: ConfigMetricAlarms;
   eks?: ConfigMetricAlarms;
+  logGroup?: ConfigLogGroupAlarms;
 }
 
 export interface ConfigCustomSNS {
@@ -165,6 +178,7 @@ export interface Config {
   distributions?: ConfigLocals;
   rdsInstances?: ConfigLocals;
   eksClusters?: ConfigLocals;
+  logGroups?: ConfigLocals;
   custom: ConfigCustom;
 }
 
@@ -206,6 +220,7 @@ export enum ConfigLocalType {
   Cloudfront = 'distributions',
   RdsInstance = 'rdsInstances',
   EksCluster = 'eksClusters',
+  LogGroup = 'logGroups',
 }
 
 export enum ConfigDefaultType {
@@ -217,6 +232,7 @@ export enum ConfigDefaultType {
   Cloudfront = 'cloudfront',
   RdsInstance = 'rds',
   EksCluster = 'eks',
+  LogGroup = 'logGroup',
 }
 
 /**
@@ -236,6 +252,8 @@ export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefau
       return ConfigDefaultType.ApiGateway;
     case ConfigLocalType.Cloudfront:
       return ConfigDefaultType.Cloudfront;
+    case ConfigLocalType.LogGroup:
+      return ConfigDefaultType.LogGroup;
     default:
       return undefined;
   }
@@ -258,6 +276,8 @@ export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLoc
       return ConfigLocalType.ApiGateway;
     case ConfigDefaultType.Cloudfront:
       return ConfigLocalType.Cloudfront;
+    case ConfigDefaultType.LogGroup:
+      return ConfigLocalType.LogGroup;
     default:
       return undefined;
   }
@@ -293,8 +313,20 @@ export function configGetSelected(confType: ConfigLocalType, names: string[]): C
 /**
  * Get default configs from config file
  */
-export function configGetDefault(configType: ConfigDefaultType, metricName: string): ConfigMetricAlarm | undefined {
+export function configGetDefault(
+  configType: ConfigDefaultType,
+  metricName: string,
+): ConfigMetricAlarm | ConfigLogGroupAlarm | undefined {
   return configFile?.custom?.default?.[configType]?.[metricName];
+}
+
+/**
+ * Get all default configs from config file
+ */
+export function configGetAllDefaults(
+  configType: ConfigDefaultType,
+): ConfigMetricAlarms | ConfigLogGroupAlarms | undefined {
+  return configFile?.custom?.default?.[configType];
 }
 
 /**
