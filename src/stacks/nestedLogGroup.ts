@@ -127,5 +127,4 @@ export function createLogGroupMonitoring(stack: cdk.Stack, snsStack: NestedSNSSt
 
   // Create single stack
   return [new NestedLogGroupAlarmsStack(stack, stack.stackName + '-log-group-alarms', snsStack, logGroups)];
-  //return [];
 }
