@@ -21,7 +21,8 @@
     "build": "tsc --build ./tsconfig.json",
     "docs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "tsc --watch",
-    "postinstall": "tsc --build ./tsconfig.json"
+    "postinstall": "tsc --build ./tsconfig.json",
+    "release": "standard-version"
   },
   "prettier": {
     "semi": true,
@@ -67,6 +68,7 @@
     "lint-staged": "^8.0.0",
     "prettier": "^1.19.1",
     "semantic-release": "^15.9.16",
+    "standard-version": "^8.0.2",
     "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
     "typedoc": "^0.17.8",
