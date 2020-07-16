@@ -9,7 +9,7 @@ Separate library for MCA monitoring generated with MCA CLI.
 
 ## Release
 
-run `npm run release` to make version bump, add tags and update CHANGELOG automatically.
+Run `npm run release` to make version bump, add tags and update CHANGELOG automatically.
 
 ## Documentation
 
