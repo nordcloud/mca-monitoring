@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.1](https://bitbucket.org/nordcloud/mca-monitoring/compare/v0.0.0...v0.0.1) (2020-07-16)
+
+
+### Features
+
+* **versioning:** add release command ([b6aa937](https://bitbucket.org/nordcloud/mca-monitoring/commit/b6aa937474f602bcfd58f8344d2d649a20f351a2))
+
 ## 0.0.0 (2020-07-16)
 
 
