@@ -126,7 +126,7 @@ export function getMetricConfig(
 ): cw.MetricProps {
   const combined = {
     ...(config.configGetDefault(configType, metricName)?.metric || {}),
-    ...(conf?.[metricName] || {}),
+    ...(conf?.[metricName]?.metric || {}),
   };
 
   const obj: cw.MetricProps = {
