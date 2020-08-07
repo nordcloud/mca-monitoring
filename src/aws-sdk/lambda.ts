@@ -1,4 +1,4 @@
-import * as AWS from 'aws-sdk';
+import sdk from 'aws-cdk/lib/api/util/sdk';
 import { validateCredentials } from './credentials';
 import { match } from '../utils';
 

@@ -6,19 +6,19 @@ import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../u
 import { getLambdas } from '../aws-sdk';
 
 export interface LambdaConfigProps {
-  Invocations: ConfigMetricAlarm;
-  Errors: ConfigMetricAlarm;
-  DeadLetterErrors: ConfigMetricAlarm;
-  DestinationDeliveryFailures: ConfigMetricAlarm;
-  Throttles: ConfigMetricAlarm;
-  ProvisionedConcurrencyInvocations: ConfigMetricAlarm;
-  ProvisionedConcurrencySpilloverInvocations: ConfigMetricAlarm;
-  Duration: ConfigMetricAlarm;
-  IteratorAge: ConfigMetricAlarm;
-  ConcurrencyExecutions: ConfigMetricAlarm;
-  ProvisionedConcurrencyExecutions: ConfigMetricAlarm;
-  ProvisionedConcurrencyUtilizations: ConfigMetricAlarm;
-  UnreservedConcurrentExecutions: ConfigMetricAlarm;
+  Invocations?: ConfigMetricAlarm;
+  Errors?: ConfigMetricAlarm;
+  DeadLetterErrors?: ConfigMetricAlarm;
+  DestinationDeliveryFailures?: ConfigMetricAlarm;
+  Throttles?: ConfigMetricAlarm;
+  ProvisionedConcurrencyInvocations?: ConfigMetricAlarm;
+  ProvisionedConcurrencySpilloverInvocations?: ConfigMetricAlarm;
+  Duration?: ConfigMetricAlarm;
+  IteratorAge?: ConfigMetricAlarm;
+  ConcurrencyExecutions?: ConfigMetricAlarm;
+  ProvisionedConcurrencyExecutions?: ConfigMetricAlarm;
+  ProvisionedConcurrencyUtilizations?: ConfigMetricAlarm;
+  UnreservedConcurrentExecutions?: ConfigMetricAlarm;
 }
 
 export type LambdaProps = MonitoringConfig<LambdaConfigProps>;

@@ -1,7 +1,5 @@
 import { CreateAlarmOptions } from '@aws-cdk/aws-cloudwatch';
 
-import getTreatMissingData from './getTreatMissingData';
-import getComparisonOperator from './getComparisonOperator';
 import { AlarmOptions } from './types';
 
 export default function getAlarmConfig(alarmName: string, props?: AlarmOptions): CreateAlarmOptions {
@@ -14,8 +12,6 @@ export default function getAlarmConfig(alarmName: string, props?: AlarmOptions):
     ...(props || {}),
 
     // Make sure props doesn't override these
-    treatMissingData: getTreatMissingData(props?.treatMissingData),
-    comparisonOperator: getComparisonOperator(props?.comparisonOperator),
     actionsEnabled: true,
     alarmName,
   } as CreateAlarmOptions;

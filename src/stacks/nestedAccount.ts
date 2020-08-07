@@ -5,13 +5,13 @@ import { ConfigMetricAlarm, ConfigMetricAlarmName, MonitoringConfigNoLocal } fro
 import { isEnabled, generateMetricAlarm, MetricNamespace } from '../utils';
 
 export interface AccountConfigProps {
-  AccountMaxReads: ConfigMetricAlarm;
-  AccountMaxTableLevelReads: ConfigMetricAlarm;
-  AccountMaxTableLevelWrites: ConfigMetricAlarm;
-  AccountMaxWrites: ConfigMetricAlarm;
-  AccountProvisionedReadCapacityUtilization: ConfigMetricAlarm;
-  AccountProvisionedWriteCapacityUtilization: ConfigMetricAlarm;
-  UserErrors: ConfigMetricAlarm;
+  AccountMaxReads?: ConfigMetricAlarm;
+  AccountMaxTableLevelReads?: ConfigMetricAlarm;
+  AccountMaxTableLevelWrites?: ConfigMetricAlarm;
+  AccountMaxWrites?: ConfigMetricAlarm;
+  AccountProvisionedReadCapacityUtilization?: ConfigMetricAlarm;
+  AccountProvisionedWriteCapacityUtilization?: ConfigMetricAlarm;
+  UserErrors?: ConfigMetricAlarm;
 }
 
 export type AccountProps = MonitoringConfigNoLocal<AccountConfigProps>;

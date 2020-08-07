@@ -6,20 +6,20 @@ import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../u
 import { getDistributions } from '../aws-sdk';
 
 export interface CloudFrontConfigProps {
-  '4XXErrorRate': ConfigMetricAlarm;
-  '5XXErrorRate': ConfigMetricAlarm;
-  '401ErrorRate': ConfigMetricAlarm;
-  '403ErrorRate': ConfigMetricAlarm;
-  '404ErrorRate': ConfigMetricAlarm;
-  '502ErrorRate': ConfigMetricAlarm;
-  '503ErrorRate': ConfigMetricAlarm;
-  '504ErrorRate': ConfigMetricAlarm;
-  BytesDownloaded: ConfigMetricAlarm;
-  BytesUploaded: ConfigMetricAlarm;
-  CacheHitRate: ConfigMetricAlarm;
-  OriginLatency: ConfigMetricAlarm;
-  Requests: ConfigMetricAlarm;
-  TotalErrorRate: ConfigMetricAlarm;
+  '4XXErrorRate'?: ConfigMetricAlarm;
+  '5XXErrorRate'?: ConfigMetricAlarm;
+  '401ErrorRate'?: ConfigMetricAlarm;
+  '403ErrorRate'?: ConfigMetricAlarm;
+  '404ErrorRate'?: ConfigMetricAlarm;
+  '502ErrorRate'?: ConfigMetricAlarm;
+  '503ErrorRate'?: ConfigMetricAlarm;
+  '504ErrorRate'?: ConfigMetricAlarm;
+  BytesDownloaded?: ConfigMetricAlarm;
+  BytesUploaded?: ConfigMetricAlarm;
+  CacheHitRate?: ConfigMetricAlarm;
+  OriginLatency?: ConfigMetricAlarm;
+  Requests?: ConfigMetricAlarm;
+  TotalErrorRate?: ConfigMetricAlarm;
 }
 
 export type CloudFrontProps = MonitoringConfig<CloudFrontConfigProps>;

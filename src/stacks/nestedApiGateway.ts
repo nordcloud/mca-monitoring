@@ -6,13 +6,13 @@ import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../u
 import { getRoutes } from '../aws-sdk';
 
 export interface ApiGatewayConfigProps {
-  '4XXError': ConfigMetricAlarm;
-  '5XXError': ConfigMetricAlarm;
-  CacheHitCount: ConfigMetricAlarm;
-  CacheMissCount: ConfigMetricAlarm;
-  Count: ConfigMetricAlarm;
-  IntegrationLatency: ConfigMetricAlarm;
-  Latency: ConfigMetricAlarm;
+  '4XXError'?: ConfigMetricAlarm;
+  '5XXError'?: ConfigMetricAlarm;
+  CacheHitCount?: ConfigMetricAlarm;
+  CacheMissCount?: ConfigMetricAlarm;
+  Count?: ConfigMetricAlarm;
+  IntegrationLatency?: ConfigMetricAlarm;
+  Latency?: ConfigMetricAlarm;
 }
 
 export type ApiGatewayProps = MonitoringConfig<ApiGatewayConfigProps>;

@@ -1,7 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as cw from '@aws-cdk/aws-cloudwatch';
 
-import { setAWSCredentials } from '../aws-sdk';
 import { createSNSStack, NestedSNSStack, NestedSNSStackProps } from './nestedSns';
 import { createLambdaMonitoring, NestedLambdaAlarmsStack, LambdaProps } from './nestedLambda';
 import { createDynamoDBMonitoring, NestedDynamoDBAlarmsStack, DynamoDBProps } from './nestedDynamoDB';
@@ -13,8 +12,6 @@ import { createRDSMonitoring, NestedRDSAlarmsStack, RDSProps } from './nestedRDS
 import { createEKSMonitoring, NestedEKSAlarmsStack, EKSProps } from './nestedEKS';
 
 export interface MonitoringStackProps extends cdk.StackProps {
-  profile?: string;
-  region?: string;
   sns?: NestedSNSStackProps;
 }
 
@@ -24,9 +21,6 @@ export class MonitoringStack extends cdk.Stack {
 
   constructor(scope: cdk.Construct, id: string, props?: MonitoringStackProps) {
     super(scope, id, props);
-
-    // Set AWS credentials ready for later requests
-    setAWSCredentials(props?.profile, props?.region);
 
     // Setup SNS topics and actions
     if (props?.sns) {
@@ -141,13 +135,13 @@ export class MonitoringStack extends cdk.Stack {
 /**
  * Setup default CDK app
  */
-export function createApp(): cdk.Construct {
+export function createApp(): cdk.App {
   return new cdk.App();
 }
 
 /**
  * Generate monitoring stack
  */
-export function setupMonitoringStack(app: cdk.Construct, id: string): MonitoringStack {
-  return new MonitoringStack(app, id);
+export function createMonitoringStack(app: cdk.Construct, id: string, props?: MonitoringStackProps): MonitoringStack {
+  return new MonitoringStack(app, id, props);
 }

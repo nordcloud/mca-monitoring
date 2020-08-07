@@ -6,31 +6,31 @@ import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../u
 import { getRDSInstances } from '../aws-sdk';
 
 export interface RDSConfigProps {
-  BinLogDiskUsage: ConfigMetricAlarm;
-  BurstBalance: ConfigMetricAlarm;
-  CPUUtilization: ConfigMetricAlarm;
-  CPUCreditUsage: ConfigMetricAlarm;
-  CPUCreditBalance: ConfigMetricAlarm;
-  DatabaseConnections: ConfigMetricAlarm;
-  DiskQueueDepth: ConfigMetricAlarm;
-  FailedSQLServerAgentJobsCount: ConfigMetricAlarm;
-  FreeableMemory: ConfigMetricAlarm;
-  FreeStorageSpace: ConfigMetricAlarm;
-  MaximumUsedTransactionIDs: ConfigMetricAlarm;
-  NetworkReceiveThroughput: ConfigMetricAlarm;
-  NetworkTransmitThroughput: ConfigMetricAlarm;
-  OldestReplicationSlotLag: ConfigMetricAlarm;
-  ReadIOPS: ConfigMetricAlarm;
-  ReadLatency: ConfigMetricAlarm;
-  ReadThroughput: ConfigMetricAlarm;
-  ReplicaLag: ConfigMetricAlarm;
-  ReplicationSlotDiskUsage: ConfigMetricAlarm;
-  SwapUsage: ConfigMetricAlarm;
-  TransactionLogsDiskUsage: ConfigMetricAlarm;
-  TransactionLogsGeneration: ConfigMetricAlarm;
-  WriteIOPS: ConfigMetricAlarm;
-  WriteLatency: ConfigMetricAlarm;
-  WriteThroughput: ConfigMetricAlarm;
+  BinLogDiskUsage?: ConfigMetricAlarm;
+  BurstBalance?: ConfigMetricAlarm;
+  CPUUtilization?: ConfigMetricAlarm;
+  CPUCreditUsage?: ConfigMetricAlarm;
+  CPUCreditBalance?: ConfigMetricAlarm;
+  DatabaseConnections?: ConfigMetricAlarm;
+  DiskQueueDepth?: ConfigMetricAlarm;
+  FailedSQLServerAgentJobsCount?: ConfigMetricAlarm;
+  FreeableMemory?: ConfigMetricAlarm;
+  FreeStorageSpace?: ConfigMetricAlarm;
+  MaximumUsedTransactionIDs?: ConfigMetricAlarm;
+  NetworkReceiveThroughput?: ConfigMetricAlarm;
+  NetworkTransmitThroughput?: ConfigMetricAlarm;
+  OldestReplicationSlotLag?: ConfigMetricAlarm;
+  ReadIOPS?: ConfigMetricAlarm;
+  ReadLatency?: ConfigMetricAlarm;
+  ReadThroughput?: ConfigMetricAlarm;
+  ReplicaLag?: ConfigMetricAlarm;
+  ReplicationSlotDiskUsage?: ConfigMetricAlarm;
+  SwapUsage?: ConfigMetricAlarm;
+  TransactionLogsDiskUsage?: ConfigMetricAlarm;
+  TransactionLogsGeneration?: ConfigMetricAlarm;
+  WriteIOPS?: ConfigMetricAlarm;
+  WriteLatency?: ConfigMetricAlarm;
+  WriteThroughput?: ConfigMetricAlarm;
 }
 
 export type RDSProps = MonitoringConfig<RDSConfigProps>;

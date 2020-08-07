@@ -7,27 +7,27 @@ import { MonitoringConfig, ConfigMetricAlarm } from '../utils/types';
 import { getTables } from '../aws-sdk';
 
 export interface DynamoDBConfigProps {
-  ConditionalCheckFailedRequests: ConfigMetricAlarm;
-  ConsumedReadCapacityUnits: ConfigMetricAlarm;
-  ConsumedWriteCapacityUnits: ConfigMetricAlarm;
-  MaxProvisionedTableReadCapacityUtilization: ConfigMetricAlarm;
-  MaxProvisionedTableWriteCapacityUtilization: ConfigMetricAlarm;
-  OnlineIndexConsumedWriteCapacity: ConfigMetricAlarm;
-  OnlineIndexPercentageProgress: ConfigMetricAlarm;
-  OnlineIndexThrottleEvents: ConfigMetricAlarm;
-  PendingReplicationCount: ConfigMetricAlarm;
-  ProvisionedReadCapacity: ConfigMetricAlarm;
-  ProvisionedWriteCapacity: ConfigMetricAlarm;
-  ReadThrottleEvents: ConfigMetricAlarm;
-  ReplicationLatency: ConfigMetricAlarm;
-  ReturnedBytes: ConfigMetricAlarm;
-  ReturnedItemCount: ConfigMetricAlarm;
-  ReturnedRecordsCount: ConfigMetricAlarm;
-  SystemErrors: ConfigMetricAlarm;
-  TimeToLiveDeletedItemCount: ConfigMetricAlarm;
-  ThrottledRequests: ConfigMetricAlarm;
-  TransactionConflict: ConfigMetricAlarm;
-  WriteThrottleEvents: ConfigMetricAlarm;
+  ConditionalCheckFailedRequests?: ConfigMetricAlarm;
+  ConsumedReadCapacityUnits?: ConfigMetricAlarm;
+  ConsumedWriteCapacityUnits?: ConfigMetricAlarm;
+  MaxProvisionedTableReadCapacityUtilization?: ConfigMetricAlarm;
+  MaxProvisionedTableWriteCapacityUtilization?: ConfigMetricAlarm;
+  OnlineIndexConsumedWriteCapacity?: ConfigMetricAlarm;
+  OnlineIndexPercentageProgress?: ConfigMetricAlarm;
+  OnlineIndexThrottleEvents?: ConfigMetricAlarm;
+  PendingReplicationCount?: ConfigMetricAlarm;
+  ProvisionedReadCapacity?: ConfigMetricAlarm;
+  ProvisionedWriteCapacity?: ConfigMetricAlarm;
+  ReadThrottleEvents?: ConfigMetricAlarm;
+  ReplicationLatency?: ConfigMetricAlarm;
+  ReturnedBytes?: ConfigMetricAlarm;
+  ReturnedItemCount?: ConfigMetricAlarm;
+  ReturnedRecordsCount?: ConfigMetricAlarm;
+  SystemErrors?: ConfigMetricAlarm;
+  TimeToLiveDeletedItemCount?: ConfigMetricAlarm;
+  ThrottledRequests?: ConfigMetricAlarm;
+  TransactionConflict?: ConfigMetricAlarm;
+  WriteThrottleEvents?: ConfigMetricAlarm;
 }
 
 export type DynamoDBProps = MonitoringConfig<DynamoDBConfigProps>;

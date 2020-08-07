@@ -1,4 +1,4 @@
-import { Unit, TreatMissingData, ComparisonOperator } from '@aws-cdk/aws-cloudwatch';
+import { Unit, TreatMissingData, ComparisonOperator, Statistic } from '@aws-cdk/aws-cloudwatch';
 import { NestedSNSStack } from '../stacks';
 
 export interface AlarmOptions {
@@ -15,7 +15,7 @@ export interface AlarmOptions {
   /**
    * Comparison to use to check if metric is breaching
    */
-  readonly comparisonOperator?: keyof typeof ComparisonOperator;
+  readonly comparisonOperator?: ComparisonOperator;
 
   /**
    * The value against which the specified statistic is compared.
@@ -37,7 +37,7 @@ export interface AlarmOptions {
   /**
    * Sets how this alarm is to handle missing data points.
    */
-  readonly treatMissingData?: keyof typeof TreatMissingData;
+  readonly treatMissingData?: TreatMissingData;
 }
 
 export type DimensionHash = { [dim: string]: object };
@@ -82,7 +82,7 @@ export interface MetricOptions {
    * - "SampleCount | "n"
    * - "pNN.NN"
    */
-  readonly statistic?: string;
+  readonly statistic?: Statistic;
 
   /**
    * Dimensions of the metric
@@ -101,7 +101,7 @@ export interface MetricOptions {
    *
    * CloudWatch does not honor this property for graphs.
    */
-  readonly unit?: keyof typeof Unit;
+  readonly unit?: Unit;
 
   /**
    * Label for this metric when added to a Graph in a Dashboard
@@ -139,7 +139,7 @@ export interface MonitoringLocalConfig<T> {
 
 export interface MonitoringConfig<T> {
   default: T;
-  local: MonitoringLocalConfig<T>;
+  local?: MonitoringLocalConfig<T>;
   exclude?: string[];
   include?: string[];
   snsStack?: NestedSNSStack;

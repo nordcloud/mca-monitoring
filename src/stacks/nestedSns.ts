@@ -7,7 +7,7 @@ import { SnsAction } from '@aws-cdk/aws-cloudwatch-actions';
 
 export interface NestedSNSStackProps extends NestedStackProps {
   topicId: string;
-  topicName: string;
+  topicName?: string;
   emails?: string[];
   endpoints?: string[];
 }

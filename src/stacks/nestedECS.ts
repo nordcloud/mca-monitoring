@@ -6,11 +6,11 @@ import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../u
 import { getECSClusters } from '../aws-sdk';
 
 export interface ECSConfigProps {
-  CPUReservation: ConfigMetricAlarm;
-  CPUUtilization: ConfigMetricAlarm;
-  MemoryReservation: ConfigMetricAlarm;
-  MemoryUtilization: ConfigMetricAlarm;
-  GPUReservation: ConfigMetricAlarm;
+  CPUReservation?: ConfigMetricAlarm;
+  CPUUtilization?: ConfigMetricAlarm;
+  MemoryReservation?: ConfigMetricAlarm;
+  MemoryUtilization?: ConfigMetricAlarm;
+  GPUReservation?: ConfigMetricAlarm;
 }
 
 export type ECSProps = MonitoringConfig<ECSConfigProps>;
