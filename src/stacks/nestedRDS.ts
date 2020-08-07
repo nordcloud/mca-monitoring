@@ -1,13 +1,44 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getRDSInstances } from '../aws-sdk';
+
+export interface RDSConfigProps {
+  BinLogDiskUsage: ConfigMetricAlarm;
+  BurstBalance: ConfigMetricAlarm;
+  CPUUtilization: ConfigMetricAlarm;
+  CPUCreditUsage: ConfigMetricAlarm;
+  CPUCreditBalance: ConfigMetricAlarm;
+  DatabaseConnections: ConfigMetricAlarm;
+  DiskQueueDepth: ConfigMetricAlarm;
+  FailedSQLServerAgentJobsCount: ConfigMetricAlarm;
+  FreeableMemory: ConfigMetricAlarm;
+  FreeStorageSpace: ConfigMetricAlarm;
+  MaximumUsedTransactionIDs: ConfigMetricAlarm;
+  NetworkReceiveThroughput: ConfigMetricAlarm;
+  NetworkTransmitThroughput: ConfigMetricAlarm;
+  OldestReplicationSlotLag: ConfigMetricAlarm;
+  ReadIOPS: ConfigMetricAlarm;
+  ReadLatency: ConfigMetricAlarm;
+  ReadThroughput: ConfigMetricAlarm;
+  ReplicaLag: ConfigMetricAlarm;
+  ReplicationSlotDiskUsage: ConfigMetricAlarm;
+  SwapUsage: ConfigMetricAlarm;
+  TransactionLogsDiskUsage: ConfigMetricAlarm;
+  TransactionLogsGeneration: ConfigMetricAlarm;
+  WriteIOPS: ConfigMetricAlarm;
+  WriteLatency: ConfigMetricAlarm;
+  WriteThroughput: ConfigMetricAlarm;
+}
+
+export type RDSProps = MonitoringConfig<RDSConfigProps>;
+
+export type RDSPropsKeys = (keyof RDSConfigProps)[];
 
 // From https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MonitoringOverview.html
-export const rdsMetrics = [
+export const rdsMetrics: RDSPropsKeys = [
   'BinLogDiskUsage',
   'BurstBalance',
   'CPUUtilization',
@@ -35,56 +66,59 @@ export const rdsMetrics = [
   'WriteThroughput',
 ];
 
-const defaultType = config.ConfigDefaultType.RdsInstance;
-const localType = config.ConfigLocalType.RdsInstance;
+export interface NestedRDSAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
+// Generate nested stack for lambda alarms
 export class NestedRDSAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    instances: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+  constructor(scope: cdk.Construct, id: string, props: NestedRDSAlarmStackProps) {
+    super(scope, id, props);
 
-    // Setup instances
-    Object.keys(instances).forEach(instanceName => {
-      const instanceConfig = instances[instanceName];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        DBInstanceIdentifier: instanceName,
+        DBInstanceIdentifier: metricAlarm.resourceName,
       };
 
-      rdsMetrics.forEach(metricName => {
-        this.setupAlarm(instanceName, metricName, instanceConfig, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.RDS, dimensions);
     });
   }
 }
 
 // Setup rds alarms
-export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedRDSAlarmsStack[] {
-  const instances = config.configGetAllEnabled(localType, rdsMetrics);
-  const instanceKeys: string[] = Object.keys(instances);
+export async function createRDSMonitoring(stack: cdk.Stack, props?: RDSProps): Promise<NestedRDSAlarmsStack[]> {
+  const instances = await getRDSInstances(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  // Nothing to create
-  if (instanceKeys.length === 0) {
+  instances.forEach(instance => {
+    rdsMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[instance.DBInstanceIdentifier || '']?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, instance.DBInstanceIdentifier, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  // Split over 7 instances to multiple stacks
-  if (instanceKeys.length > 7) {
-    return chunk(instanceKeys, 7).map((keys, index) => {
-      const stackInstances = config.configGetSelected(localType, keys);
-      return new NestedRDSAlarmsStack(
-        stack,
-        stack.stackName + '-rds-instance-alarms-' + (index + 1),
-        snsStack,
-        stackInstances,
-      );
+  // Split more than 50 lambdas to multiple stacks
+  if (metricAlarms.length > 7) {
+    return chunk(metricAlarms, 7).map((metricAlarms, index) => {
+      return new NestedRDSAlarmsStack(stack, stack.stackName + '-rds-instance-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
   // Create single stack
-  return [new NestedRDSAlarmsStack(stack, stack.stackName + '-rds-instance-alarms', snsStack, instances)];
+  return [
+    new NestedRDSAlarmsStack(stack, stack.stackName + '-rds-instance-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }

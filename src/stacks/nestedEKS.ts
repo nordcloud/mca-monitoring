@@ -1,13 +1,44 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getEKSClusters } from '../aws-sdk';
+
+export interface EKSConfigProps {
+  cluster_failed_node_count: ConfigMetricAlarm;
+  cluster_node_count: ConfigMetricAlarm;
+  namespace_number_of_running_pods: ConfigMetricAlarm;
+  node_cpu_limit: ConfigMetricAlarm;
+  node_cpu_reserved_capacity: ConfigMetricAlarm;
+  node_cpu_usage_total: ConfigMetricAlarm;
+  node_cpu_utilization: ConfigMetricAlarm;
+  node_filesystem_utilization: ConfigMetricAlarm;
+  node_memory_limit: ConfigMetricAlarm;
+  node_memory_reserved_capacity: ConfigMetricAlarm;
+  node_memory_utilization: ConfigMetricAlarm;
+  node_memory_working_set: ConfigMetricAlarm;
+  node_network_total_bytes: ConfigMetricAlarm;
+  node_number_of_running_containers: ConfigMetricAlarm;
+  node_number_of_running_pods: ConfigMetricAlarm;
+  pod_cpu_reserved_capacity: ConfigMetricAlarm;
+  pod_cpu_utilization: ConfigMetricAlarm;
+  pod_cpu_utilization_over_pod_limit: ConfigMetricAlarm;
+  pod_memory_reserved_capacity: ConfigMetricAlarm;
+  pod_memory_utilization: ConfigMetricAlarm;
+  pod_memory_utilization_over_pod_limit: ConfigMetricAlarm;
+  pod_number_of_container_restarts: ConfigMetricAlarm;
+  pod_network_rx_bytes: ConfigMetricAlarm;
+  pod_network_tx_bytes: ConfigMetricAlarm;
+  service_number_of_running_pods: ConfigMetricAlarm;
+}
+
+export type EKSProps = MonitoringConfig<EKSConfigProps>;
+
+export type EKSPropsKeys = (keyof EKSConfigProps)[];
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html
-export const eksMetrics = [
+export const eksMetrics: EKSPropsKeys = [
   'cluster_failed_node_count',
   'cluster_node_count',
   'namespace_number_of_running_pods',
@@ -35,56 +66,57 @@ export const eksMetrics = [
   'service_number_of_running_pods',
 ];
 
-const defaultType = config.ConfigDefaultType.EksCluster;
-const localType = config.ConfigLocalType.EksCluster;
+export interface NestedEKSAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
 export class NestedEKSAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    clusters: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+  constructor(scope: cdk.Construct, id: string, props: NestedEKSAlarmStackProps) {
+    super(scope, id, props);
 
-    // Setup clusters
-    Object.keys(clusters).forEach(clusterName => {
-      const clusterConfig = clusters[clusterName];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        ClusterName: clusterName,
+        ClusterName: metricAlarm.resourceName,
       };
 
-      eksMetrics.forEach(metricName => {
-        this.setupAlarm(clusterName, metricName, clusterConfig, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.EKS, dimensions);
     });
   }
 }
 
-// Setup eks alarms
-export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedEKSAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, eksMetrics);
-  const clusterKeys: string[] = Object.keys(clusters);
+export async function createEKSMonitoring(stack: cdk.Stack, props?: EKSProps): Promise<NestedEKSAlarmsStack[]> {
+  const clusters = await getEKSClusters(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  // Nothing to create
-  if (clusterKeys.length === 0) {
+  clusters.forEach(cluster => {
+    eksMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[cluster]?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, cluster, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  // Split over 8 clusters to multiple stacks
-  if (clusterKeys.length > 8) {
-    return chunk(clusterKeys, 8).map((keys, index) => {
-      const stackClusters = config.configGetSelected(localType, keys);
-      return new NestedEKSAlarmsStack(
-        stack,
-        stack.stackName + '-eks-cluster-alarms-' + (index + 1),
-        snsStack,
-        stackClusters,
-      );
+  // Split more than 50 lambdas to multiple stacks
+  if (metricAlarms.length > 50) {
+    return chunk(metricAlarms, 50).map((metricAlarms, index) => {
+      return new NestedEKSAlarmsStack(stack, stack.stackName + '-eks-cluster-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
   // Create single stack
-  return [new NestedEKSAlarmsStack(stack, stack.stackName + '-eks-cluster-alarms', snsStack, clusters)];
+  return [
+    new NestedEKSAlarmsStack(stack, stack.stackName + '-eks-cluster-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }

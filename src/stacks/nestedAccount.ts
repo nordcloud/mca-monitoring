@@ -1,47 +1,69 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
 
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { getAlarmConfig } from '../utils/alarm';
-import { getMetricConfig } from '../utils/metric';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { ConfigMetricAlarm, ConfigMetricAlarmName, MonitoringConfigNoLocal } from '../utils/types';
+import { isEnabled, generateMetricAlarm, MetricNamespace } from '../utils';
 
-export class NestedAccountAlarmsStack extends cfn.NestedStack {
-  private snsStack: NestedSNSStack;
+export interface AccountConfigProps {
+  AccountMaxReads: ConfigMetricAlarm;
+  AccountMaxTableLevelReads: ConfigMetricAlarm;
+  AccountMaxTableLevelWrites: ConfigMetricAlarm;
+  AccountMaxWrites: ConfigMetricAlarm;
+  AccountProvisionedReadCapacityUtilization: ConfigMetricAlarm;
+  AccountProvisionedWriteCapacityUtilization: ConfigMetricAlarm;
+  UserErrors: ConfigMetricAlarm;
+}
 
-  constructor(scope: cdk.Construct, id: string, snsStack: NestedSNSStack, props?: cfn.NestedStackProps) {
+export type AccountProps = MonitoringConfigNoLocal<AccountConfigProps>;
+
+export type AccountPropsKeys = (keyof AccountConfigProps)[];
+
+export const accountPropsKeys: AccountPropsKeys = [
+  'AccountMaxReads',
+  'AccountMaxTableLevelReads',
+  'AccountMaxTableLevelWrites',
+  'AccountMaxWrites',
+  'AccountProvisionedReadCapacityUtilization',
+  'AccountProvisionedWriteCapacityUtilization',
+  'UserErrors',
+];
+
+export interface NestedAccountAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
+
+export class NestedAccountAlarmsStack extends BaseNestedStack {
+  constructor(scope: cdk.Construct, id: string, props: NestedAccountAlarmStackProps) {
     super(scope, id, props);
 
-    this.snsStack = snsStack;
-
-    //this.setupAccountAlarm('AccountMaxReads');
-    //this.setupAccountAlarm('AccountMaxTableLevelReads');
-    //this.setupAccountAlarm('AccountMaxTableLevelWrites');
-    //this.setupAccountAlarm('AccountMaxWrites');
-    //this.setupAccountAlarm('AccountProvisionedReadCapacityUtilization');
-    //this.setupAccountAlarm('AccountProvisionedWriteCapacityUtilization');
-    this.setupAccountAlarm('UserErrors');
-  }
-
-  private setupAccountAlarm(metricName: string): void {
-    const autoResolve = config.configAutoResolve(config.ConfigDefaultType.Account, metricName);
-
-    const metric = new cw.Metric({
-      ...getMetricConfig(config.ConfigDefaultType.Account, metricName),
-      dimensions: {},
+    props.metricAlarms.forEach(metricAlarm => {
+      this.setupAlarm(metricAlarm, MetricNamespace.DynamoDB);
     });
-
-    const alarm = metric.createAlarm(this, metricName, {
-      ...getAlarmConfig(config.ConfigDefaultType.Account, metricName),
-      alarmName: metricName,
-      actionsEnabled: config.configIsEnabled(config.ConfigDefaultType.Account, metricName),
-    });
-
-    this.snsStack.addAlarmActions(alarm, autoResolve);
   }
 }
 
-export function createAccountAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedAccountAlarmsStack[] {
-  return [new NestedAccountAlarmsStack(stack, stack.stackName + '-account-alarms', snsStack)];
+export async function createAccountMonitoring(
+  stack: cdk.Stack,
+  props?: AccountProps,
+): Promise<NestedAccountAlarmsStack[]> {
+  const metricAlarms: ConfigMetricAlarmName[] = [];
+
+  accountPropsKeys.forEach(metric => {
+    const defaultConf = props?.default?.[metric];
+    if (isEnabled(defaultConf)) {
+      metricAlarms.push(generateMetricAlarm(metric, '', defaultConf));
+    }
+  });
+
+  if (metricAlarms.length === 0) {
+    return [];
+  }
+
+  // Create single stack
+  return [
+    new NestedAccountAlarmsStack(stack, stack.stackName + '-account-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }

@@ -1,4 +1,12 @@
-export * from './config';
-export * from './alarm';
-export * from './metric';
-export * from './utils';
+export * from './types';
+export { default as getTreatMissingData } from './getTreatMissingData';
+export { default as getComparisonOperator } from './getComparisonOperator';
+export { default as getAlarmConfig } from './getAlarmConfig';
+export { default as getMetricConfig } from './getMetricConfig';
+export { default as getMetricUnit } from './getMetricUnit';
+export { default as getMetricDuration } from './getMetricDuration';
+export { default as chunk } from './chunk';
+export { default as match } from './match';
+export { default as isEnabled } from './isEnabled';
+export { default as isAutoresolved } from './isAutoresolved';
+export { default as generateMetricAlarm } from './generateMetricAlarm';

@@ -1,12 +1,23 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getECSClusters } from '../aws-sdk';
 
-export const clusterMetrics = [
+export interface ECSConfigProps {
+  CPUReservation: ConfigMetricAlarm;
+  CPUUtilization: ConfigMetricAlarm;
+  MemoryReservation: ConfigMetricAlarm;
+  MemoryUtilization: ConfigMetricAlarm;
+  GPUReservation: ConfigMetricAlarm;
+}
+
+export type ECSProps = MonitoringConfig<ECSConfigProps>;
+
+export type ECSPropsKeys = (keyof ECSConfigProps)[];
+
+export const ecsMetrics: ECSPropsKeys = [
   'CPUReservation',
   'CPUUtilization',
   'MemoryReservation',
@@ -14,51 +25,57 @@ export const clusterMetrics = [
   'GPUReservation',
 ];
 
-const defaultType = config.ConfigDefaultType.Cluster;
-const localType = config.ConfigLocalType.Cluster;
+export interface NestedECSAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
-export class NestedClusterAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    clusters: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+export class NestedECSAlarmsStack extends BaseNestedStack {
+  constructor(scope: cdk.Construct, id: string, props: NestedECSAlarmStackProps) {
+    super(scope, id, props);
 
-    Object.keys(clusters).forEach(name => {
-      const clusterConf = clusters[name];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        ClusterName: name,
+        ClusterName: metricAlarm.resourceName,
       };
 
-      clusterMetrics.forEach(metricName => {
-        this.setupAlarm(name, metricName, clusterConf, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.ECS, dimensions);
     });
   }
 }
 
-export function createClusterAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedClusterAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, clusterMetrics);
-  const keys = Object.keys(clusters);
+export async function createECSMonitoring(stack: cdk.Stack, props?: ECSProps): Promise<NestedECSAlarmsStack[]> {
+  const clusters = await getECSClusters(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  if (keys.length === 0) {
+  clusters.forEach(cluster => {
+    ecsMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[cluster.clusterName || '']?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, cluster.clusterName, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  if (keys.length > 30) {
-    return chunk(keys, 30).map((keys, index) => {
-      const clusters = config.configGetSelected(localType, keys);
-      return new NestedClusterAlarmsStack(
-        stack,
-        stack.stackName + '-cluster-alarms-' + (index + 1),
-        snsStack,
-        clusters,
-      );
+  // Split more than 50 lambdas to multiple stacks
+  if (metricAlarms.length > 50) {
+    return chunk(metricAlarms, 50).map((metricAlarms, index) => {
+      return new NestedECSAlarmsStack(stack, stack.stackName + '-ecs-cluster-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
-  return [new NestedClusterAlarmsStack(stack, stack.stackName + '-cluster-alarms', snsStack, clusters)];
+  // Create single stack
+  return [
+    new NestedECSAlarmsStack(stack, stack.stackName + '-ecs-cluster-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }

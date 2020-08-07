@@ -2,58 +2,42 @@ import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as cw from '@aws-cdk/aws-cloudwatch';
 
-import * as config from '../utils/config';
 import { NestedSNSStack } from './nestedSns';
-import { getAlarmConfig } from '../utils/alarm';
-import { getMetricConfig } from '../utils/metric';
+import { getAlarmConfig, getMetricConfig, MetricNamespace } from '../utils';
+import { ConfigMetricAlarmName } from '../utils/types';
 
 export interface SetupAlarmOpts {
   aliases?: string[];
 }
 
+export interface BaseNestedStackProps extends cfn.NestedStackProps {
+  snsStack?: NestedSNSStack;
+}
+
 export default class BaseNestedStack extends cfn.NestedStack {
-  protected readonly snsStack: NestedSNSStack;
-  protected readonly defaultType: config.ConfigDefaultType;
-  protected readonly localType?: config.ConfigLocalType;
+  protected readonly snsStack?: NestedSNSStack;
 
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    defaultType: config.ConfigDefaultType,
-    props?: cfn.NestedStackProps,
-  ) {
+  constructor(scope: cdk.Construct, id: string, props: BaseNestedStackProps) {
     super(scope, id, props);
-
-    this.defaultType = defaultType;
-    this.localType = config.configDefaultTypeToLocal(defaultType);
-    this.snsStack = snsStack;
+    this.snsStack = props.snsStack;
   }
 
-  protected setupAlarm(
-    localName: string,
-    metricName: string,
-    localConf: config.ConfigMetricAlarms,
-    dimensions?: object,
-  ): void {
-    const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf);
-    const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf);
-
-    if (!isEnabled) {
+  protected setupAlarm(props: ConfigMetricAlarmName, namespace: MetricNamespace, dimensions?: cw.DimensionHash): void {
+    if (!props.enabled) {
       return;
     }
 
+    const metricName = `${props.resourceName}-${props.metricName}`;
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName, localConf),
+      ...getMetricConfig(metricName, namespace, props?.metric),
       dimensions,
     });
 
-    const alarmName = `${localName}-${metricName}`;
-    const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, localConf),
-      alarmName,
-    });
+    const alarmName = `${props.resourceName}-${props.metricName}`;
+    const alarm = metric.createAlarm(this, alarmName, getAlarmConfig(alarmName, props?.alarm));
 
-    this.snsStack.addAlarmActions(alarm, autoResolve);
+    if (this.snsStack) {
+      this.snsStack.addAlarmActions(alarm, props.autoResolve);
+    }
   }
 }

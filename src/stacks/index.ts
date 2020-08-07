@@ -1,6 +1,6 @@
 export * from './nestedSns';
 export * from './nestedLambda';
-export * from './nestedTable';
+export * from './nestedDynamoDB';
 export * from './nestedAccount';
 export * from './nestedECS';
 export * from './nestedApiGateway';

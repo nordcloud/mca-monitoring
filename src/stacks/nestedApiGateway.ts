@@ -1,12 +1,25 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getRoutes } from '../aws-sdk';
 
-export const apiGatewayMetrics = [
+export interface ApiGatewayConfigProps {
+  '4XXError': ConfigMetricAlarm;
+  '5XXError': ConfigMetricAlarm;
+  CacheHitCount: ConfigMetricAlarm;
+  CacheMissCount: ConfigMetricAlarm;
+  Count: ConfigMetricAlarm;
+  IntegrationLatency: ConfigMetricAlarm;
+  Latency: ConfigMetricAlarm;
+}
+
+export type ApiGatewayProps = MonitoringConfig<ApiGatewayConfigProps>;
+
+export type ApiGatewayPropsKeys = (keyof ApiGatewayConfigProps)[];
+
+export const apiGatewayMetrics: ApiGatewayPropsKeys = [
   '4XXError',
   '5XXError',
   'CacheHitCount',
@@ -16,51 +29,60 @@ export const apiGatewayMetrics = [
   'Latency',
 ];
 
-const defaultType = config.ConfigDefaultType.ApiGateway;
-const localType = config.ConfigLocalType.ApiGateway;
+export interface NestedApiGatewayAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
 export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    routes: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+  constructor(scope: cdk.Construct, id: string, props: NestedApiGatewayAlarmStackProps) {
+    super(scope, id, props);
 
-    Object.keys(routes).forEach(name => {
-      const routeConf = routes[name];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        ApiName: name,
+        ApiName: metricAlarm.resourceName,
       };
 
-      apiGatewayMetrics.forEach(metricName => {
-        this.setupAlarm(name, metricName, routeConf, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.ApiGateway, dimensions);
     });
   }
 }
 
-export function createApiGatewayAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedApiGatewayAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, apiGatewayMetrics);
-  const keys = Object.keys(clusters);
+export async function createApiGatewayMonitoring(
+  stack: cdk.Stack,
+  props?: ApiGatewayProps,
+): Promise<NestedApiGatewayAlarmsStack[]> {
+  const routes = await getRoutes(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  if (keys.length === 0) {
+  routes.forEach(route => {
+    apiGatewayMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[route.name || '']?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, route.name, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  if (keys.length > 30) {
-    return chunk(keys, 30).map((keys, index) => {
-      const clusters = config.configGetSelected(localType, keys);
-      return new NestedApiGatewayAlarmsStack(
-        stack,
-        stack.stackName + '-api-gateway-alarms-' + (index + 1),
-        snsStack,
-        clusters,
-      );
+  // Split more than 50 routes to multiple stacks
+  if (metricAlarms.length > 50) {
+    return chunk(metricAlarms, 50).map((metricAlarms, index) => {
+      return new NestedApiGatewayAlarmsStack(stack, stack.stackName + '-api-gateway-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
-  return [new NestedApiGatewayAlarmsStack(stack, stack.stackName + '-api-gateway-alarms', snsStack, clusters)];
+  // Create single stack
+  return [
+    new NestedApiGatewayAlarmsStack(stack, stack.stackName + '-api-gateway-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }

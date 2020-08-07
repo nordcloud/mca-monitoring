@@ -1,12 +1,31 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getLambdas } from '../aws-sdk';
 
-export const lambdaMetrics = [
+export interface LambdaConfigProps {
+  Invocations: ConfigMetricAlarm;
+  Errors: ConfigMetricAlarm;
+  DeadLetterErrors: ConfigMetricAlarm;
+  DestinationDeliveryFailures: ConfigMetricAlarm;
+  Throttles: ConfigMetricAlarm;
+  ProvisionedConcurrencyInvocations: ConfigMetricAlarm;
+  ProvisionedConcurrencySpilloverInvocations: ConfigMetricAlarm;
+  Duration: ConfigMetricAlarm;
+  IteratorAge: ConfigMetricAlarm;
+  ConcurrencyExecutions: ConfigMetricAlarm;
+  ProvisionedConcurrencyExecutions: ConfigMetricAlarm;
+  ProvisionedConcurrencyUtilizations: ConfigMetricAlarm;
+  UnreservedConcurrentExecutions: ConfigMetricAlarm;
+}
+
+export type LambdaProps = MonitoringConfig<LambdaConfigProps>;
+
+export type LambdaPropsKeys = (keyof LambdaConfigProps)[];
+
+export const lambdaMetrics: LambdaPropsKeys = [
   'Invocations',
   'Errors',
   'DeadLetterErrors',
@@ -22,57 +41,59 @@ export const lambdaMetrics = [
   'UnreservedConcurrentExecutions',
 ];
 
-const defaultType = config.ConfigDefaultType.Lambda;
-const localType = config.ConfigLocalType.Lambda;
+export interface NestedLambdaAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
 // Generate nested stack for lambda alarms
 export class NestedLambdaAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    lambdas: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+  constructor(scope: cdk.Construct, id: string, props: NestedLambdaAlarmStackProps) {
+    super(scope, id, props);
 
-    // Setup lambdas
-    Object.keys(lambdas).forEach(lambdaName => {
-      const lambdaConfig = lambdas[lambdaName];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        FunctionName: lambdaName,
+        FunctionName: metricAlarm.resourceName,
       };
 
-      lambdaMetrics.forEach(metricName => {
-        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.Lambda, dimensions);
     });
   }
 }
 
 // Setup lambda alarms
-export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLambdaAlarmsStack[] {
-  const lambdas = config.configGetAllEnabled(localType, lambdaMetrics);
-  const lambdaKeys: string[] = Object.keys(lambdas);
+export async function createLambdaMonitoring(
+  stack: cdk.Stack,
+  props?: LambdaProps,
+): Promise<NestedLambdaAlarmsStack[]> {
+  const lambdas = await getLambdas(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  // Nothing to create
-  if (lambdaKeys.length === 0) {
+  lambdas.forEach(lambda => {
+    lambdaMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[lambda.FunctionName || '']?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, lambda.FunctionName, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  // Split more than 30 lambdas to multiple stacks
-  if (lambdaKeys.length > 30) {
-    return chunk(lambdaKeys, 30).map((lambdaKeys, index) => {
-      const stackLambdas = config.configGetSelected(localType, lambdaKeys);
-      return new NestedLambdaAlarmsStack(
-        stack,
-        stack.stackName + '-lambda-alarms-' + (index + 1),
-        snsStack,
-        stackLambdas,
-      );
+  // Split more than 50 lambdas to multiple stacks
+  if (metricAlarms.length > 50) {
+    return chunk(metricAlarms, 50).map((metricAlarms, index) => {
+      return new NestedLambdaAlarmsStack(stack, stack.stackName + '-lambda-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
   // Create single stack
-  return [new NestedLambdaAlarmsStack(stack, stack.stackName + '-lambda-alarms', snsStack, lambdas)];
+  return [
+    new NestedLambdaAlarmsStack(stack, stack.stackName + '-lambda-alarms', { snsStack: props?.snsStack, metricAlarms }),
+  ];
 }

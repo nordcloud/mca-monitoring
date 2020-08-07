@@ -1,12 +1,32 @@
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
-import BaseNestedStack from './baseNestedStack';
-import { NestedSNSStack } from './nestedSns';
-import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import BaseNestedStack, { BaseNestedStackProps } from './baseNestedStack';
+import { isEnabled, generateMetricAlarm, chunk, MetricNamespace } from '../utils';
+import { MonitoringConfig, ConfigMetricAlarm, ConfigMetricAlarmName } from '../utils/types';
+import { getDistributions } from '../aws-sdk';
 
-export const cloudFrontMetrics = [
+export interface CloudFrontConfigProps {
+  '4XXErrorRate': ConfigMetricAlarm;
+  '5XXErrorRate': ConfigMetricAlarm;
+  '401ErrorRate': ConfigMetricAlarm;
+  '403ErrorRate': ConfigMetricAlarm;
+  '404ErrorRate': ConfigMetricAlarm;
+  '502ErrorRate': ConfigMetricAlarm;
+  '503ErrorRate': ConfigMetricAlarm;
+  '504ErrorRate': ConfigMetricAlarm;
+  BytesDownloaded: ConfigMetricAlarm;
+  BytesUploaded: ConfigMetricAlarm;
+  CacheHitRate: ConfigMetricAlarm;
+  OriginLatency: ConfigMetricAlarm;
+  Requests: ConfigMetricAlarm;
+  TotalErrorRate: ConfigMetricAlarm;
+}
+
+export type CloudFrontProps = MonitoringConfig<CloudFrontConfigProps>;
+
+export type CloudFrontPropsKeys = (keyof CloudFrontConfigProps)[];
+
+export const cloudFrontMetrics: CloudFrontPropsKeys = [
   '4XXErrorRate',
   '5XXErrorRate',
   '401ErrorRate',
@@ -23,51 +43,60 @@ export const cloudFrontMetrics = [
   'TotalErrorRate',
 ];
 
-const defaultType = config.ConfigDefaultType.Cloudfront;
-const localType = config.ConfigLocalType.Cloudfront;
+export interface NestedCloudFrontAlarmStackProps extends BaseNestedStackProps {
+  metricAlarms: ConfigMetricAlarmName[];
+}
 
 export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
-  constructor(
-    scope: cdk.Construct,
-    id: string,
-    snsStack: NestedSNSStack,
-    distributions: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
-  ) {
-    super(scope, id, snsStack, defaultType, props);
+  constructor(scope: cdk.Construct, id: string, props: NestedCloudFrontAlarmStackProps) {
+    super(scope, id, props);
 
-    Object.keys(distributions).forEach(id => {
-      const conf = distributions[id];
+    props.metricAlarms.forEach(metricAlarm => {
       const dimensions = {
-        DistributionId: id,
+        DistributionId: metricAlarm.resourceName,
       };
 
-      cloudFrontMetrics.forEach(metricName => {
-        this.setupAlarm(id, metricName, conf, dimensions);
-      });
+      this.setupAlarm(metricAlarm, MetricNamespace.CloudFront, dimensions);
     });
   }
 }
 
-export function createCloudFrontAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedCloudFrontAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, cloudFrontMetrics);
-  const keys = Object.keys(clusters);
+export async function createCloudFrontMonitoring(
+  stack: cdk.Stack,
+  props?: CloudFrontProps,
+): Promise<NestedCloudFrontAlarmsStack[]> {
+  const distributions = await getDistributions(props?.include, props?.exclude);
+  const metricAlarms: ConfigMetricAlarmName[] = [];
 
-  if (keys.length === 0) {
+  distributions.forEach(distribution => {
+    cloudFrontMetrics.forEach(metric => {
+      const defaultConf = props?.default?.[metric];
+      const localConf = props?.local?.[distribution.Id]?.[metric];
+      if (isEnabled(defaultConf, localConf)) {
+        metricAlarms.push(generateMetricAlarm(metric, distribution.Id, defaultConf, localConf));
+      }
+    });
+  });
+
+  if (metricAlarms.length === 0) {
     return [];
   }
 
-  if (keys.length > 30) {
-    return chunk(keys, 30).map((keys, index) => {
-      const clusters = config.configGetSelected(localType, keys);
-      return new NestedCloudFrontAlarmsStack(
-        stack,
-        stack.stackName + '-cloudfront-alarms-' + (index + 1),
-        snsStack,
-        clusters,
-      );
+  // Split more than 50 cloudfronts to multiple stacks
+  if (metricAlarms.length > 50) {
+    return chunk(metricAlarms, 50).map((metricAlarms, index) => {
+      return new NestedCloudFrontAlarmsStack(stack, stack.stackName + '-cloudfront-alarms-' + (index + 1), {
+        snsStack: props?.snsStack,
+        metricAlarms,
+      });
     });
   }
 
-  return [new NestedCloudFrontAlarmsStack(stack, stack.stackName + '-cloudfront-alarms', snsStack, clusters)];
+  // Create single stack
+  return [
+    new NestedCloudFrontAlarmsStack(stack, stack.stackName + '-cloudfront-alarms', {
+      snsStack: props?.snsStack,
+      metricAlarms,
+    }),
+  ];
 }
