@@ -14,13 +14,21 @@ import { getAlarmConfig } from '../utils/alarm';
 const defaultType = config.ConfigDefaultType.LogGroup;
 const localType = config.ConfigLocalType.LogGroup;
 
+export interface LogGroupsProps {
+  metricFilter?: boolean;
+}
+
+export interface NestedLogGroupAlarmsStackProps extends cfn.NestedStackProps {
+  metricFilter?: boolean;
+}
+
 export class NestedLogGroupAlarmsStack extends BaseNestedStack {
   constructor(
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
     logGroups: config.ConfigLocals,
-    props?: cfn.NestedStackProps,
+    props?: NestedLogGroupAlarmsStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -38,7 +46,9 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
           groupConfig,
         );
 
-        this.setupMetricFilter(groupName, metricFilterName, pattern as string, groupConfig);
+        if (props?.metricFilter === undefined || props?.metricFilter === true) {
+          this.setupMetricFilter(groupName, metricFilterName, pattern as string, groupConfig);
+        }
 
         const metricName = `${groupName}-${metricFilterName}`;
 
@@ -103,7 +113,11 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
 }
 
 // Setup alarms based on metric filters
-export function createLogGroupMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLogGroupAlarmsStack[] {
+export function createLogGroupMonitoring(
+  stack: cdk.Stack,
+  snsStack: NestedSNSStack,
+  props?: LogGroupsProps,
+): NestedLogGroupAlarmsStack[] {
   const logGroups = config.configGetAll(localType);
   const logGroupKeys: string[] = Object.keys(logGroups);
 
@@ -121,10 +135,15 @@ export function createLogGroupMonitoring(stack: cdk.Stack, snsStack: NestedSNSSt
         stack.stackName + '-log-group-alarms-' + (index + 1),
         snsStack,
         stackLogGroups,
+        { metricFilter: props?.metricFilter },
       );
     });
   }
 
   // Create single stack
-  return [new NestedLogGroupAlarmsStack(stack, stack.stackName + '-log-group-alarms', snsStack, logGroups)];
+  return [
+    new NestedLogGroupAlarmsStack(stack, stack.stackName + '-log-group-alarms', snsStack, logGroups, {
+      metricFilter: props?.metricFilter,
+    }),
+  ];
 }
