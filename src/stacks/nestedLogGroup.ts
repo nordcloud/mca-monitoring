@@ -34,10 +34,12 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
 
     Object.keys(logGroups).forEach(groupName => {
       const groupConfig = logGroups[groupName];
-      const metricFilterNames = [
-        ...Object.keys(config.configGetAllDefaults(this.defaultType) as config.ConfigLogGroupAlarms),
-        ...Object.keys(groupConfig),
-      ];
+      const metricFilterNames = Array.from(
+        new Set([
+          ...Object.keys(config.configGetAllDefaults(this.defaultType) as config.ConfigLogGroupAlarms),
+          ...Object.keys(groupConfig),
+        ]),
+      );
 
       metricFilterNames.forEach(metricFilterName => {
         const { pattern }: config.MetricFilterOptions = getMetricFilterConfig(
