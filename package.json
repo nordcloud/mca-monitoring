@@ -14,6 +14,9 @@
   "engines": {
     "node": ">=6.0.0"
   },
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --ext ts --fix",
@@ -21,8 +24,8 @@
     "build": "tsc --build ./tsconfig.json",
     "docs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "tsc --watch",
-    "postinstall": "tsc --build ./tsconfig.json",
-    "release": "standard-version"
+    "release": "standard-version",
+    "prepare": "npm run build"
   },
   "prettier": {
     "semi": true,
