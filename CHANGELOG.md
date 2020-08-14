@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/nordcloud/mca-monitoring/compare/v0.0.4...v0.0.5) (2020-08-14)
+
+
+### Features
+
+* Change postinstall to prepare ([3b67645](https://github.com/nordcloud/mca-monitoring/commit/3b6764517840f6c627f7b48d3a416acaca5fa988))
+
 ### [0.0.4](https://github.com/nordcloud/mca-monitoring/compare/v0.0.3...v0.0.4) (2020-08-13)
 
 
