@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/nordcloud/mca-monitoring/compare/v0.0.5...v0.0.6) (2020-08-18)
+
+
+### Bug Fixes
+
+* Better nested stack names ([9f9466c](https://github.com/nordcloud/mca-monitoring/commit/9f9466c45b95eaafc5821f90f130346e16d660b6))
+
 ### [0.0.5](https://github.com/nordcloud/mca-monitoring/compare/v0.0.4...v0.0.5) (2020-08-14)
 
 
