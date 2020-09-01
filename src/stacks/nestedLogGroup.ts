@@ -104,10 +104,9 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
       unit: undefined,
     });
 
-    const alarmName = `${localName}-${metricName}`;
-    const alarm = metric.createAlarm(this, alarmName, {
+    const alarm = metric.createAlarm(this, `${localName}-${metricName}`, {
       ...getAlarmConfig(this.defaultType, metricConfigName, localConf),
-      alarmName,
+      alarmName: metricName,
     });
 
     this.snsStack.addAlarmActions(alarm, autoResolve);
