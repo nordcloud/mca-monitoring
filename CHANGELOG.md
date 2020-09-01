@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.7](https://github.com/nordcloud/mca-monitoring/compare/v0.0.6...v0.0.7) (2020-09-01)
+
+
+### Bug Fixes
+
+* **loggroup:** Cleanup alarm name ([1afe9a7](https://github.com/nordcloud/mca-monitoring/commit/1afe9a74726cb60cd10009f3f78f56b25533bfdb))
+
 ### [0.0.6](https://github.com/nordcloud/mca-monitoring/compare/v0.0.5...v0.0.6) (2020-08-18)
 
 
