@@ -66,12 +66,13 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
     localConf: config.ConfigMetricAlarms,
   ): void {
     const isEnabled = config.configIsEnabled(this.defaultType, metricFilterName, localConf);
+    const suffix = config.configAlarmSuffix(this.defaultType, metricFilterName, localConf);
 
     if (!isEnabled) {
       return;
     }
 
-    const name = `${groupName}-${metricFilterName}`;
+    const name = `${groupName}-${suffix || metricFilterName}`;
 
     new logs.MetricFilter(this, name, {
       filterPattern: logs.FilterPattern.literal(pattern),
@@ -91,6 +92,7 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
   ): void {
     const autoResolve = config.configAutoResolve(this.defaultType, metricConfigName, localConf);
     const isEnabled = config.configIsEnabled(this.defaultType, metricConfigName, localConf);
+    const suffix = config.configAlarmSuffix(this.defaultType, metricConfigName, localConf);
 
     if (!isEnabled) {
       return;
@@ -98,15 +100,15 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
 
     const metric = new cw.Metric({
       ...getMetricConfig(this.defaultType, metricConfigName, localConf),
-      metricName,
+      metricName: suffix ? metricName + suffix : metricName,
       // unit is not defined with custom metrics,
       // so it can break the connection between the alarm and metric
       unit: undefined,
     });
 
-    const alarm = metric.createAlarm(this, `${localName}-${metricName}`, {
+    const alarm = metric.createAlarm(this, `${localName}-${suffix || metricName}`, {
       ...getAlarmConfig(this.defaultType, metricConfigName, localConf),
-      alarmName: metricName,
+      alarmName: suffix ? metricName + suffix : metricName,
     });
 
     this.snsStack.addAlarmActions(alarm, autoResolve);
