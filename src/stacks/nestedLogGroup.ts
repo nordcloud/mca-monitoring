@@ -67,13 +67,13 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
   ): void {
     const isEnabled = config.configIsEnabled(this.defaultType, metricFilterName, localConf);
     const suffix = config.configAlarmSuffix(this.defaultType, metricFilterName, localConf);
+    const fullMetricFilteName = suffix ? `${metricFilterName}-${suffix}` : metricFilterName;
 
     if (!isEnabled) {
       return;
     }
 
-    const name = `${groupName}-${suffix || metricFilterName}`;
-
+    const name = `${groupName}-${fullMetricFilteName}`;
     new logs.MetricFilter(this, name, {
       filterPattern: logs.FilterPattern.literal(pattern),
       logGroup: logs.LogGroup.fromLogGroupName(this, `${name}-log-group`, groupName),
