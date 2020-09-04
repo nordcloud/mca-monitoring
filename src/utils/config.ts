@@ -125,6 +125,7 @@ export interface MetricFilterOptions {
 export interface ConfigMetricAlarm {
   enabled?: boolean;
   autoResolve?: boolean;
+  suffix?: string;
   alarm?: AlarmOptions;
   metric?: MetricOptions;
 }
@@ -367,6 +368,17 @@ export function configAutoResolve(
   }
 
   return configGetDefault(configType, metricName)?.autoResolve === true || local === true;
+}
+
+/**
+ * Check if metric is enabled for local or default config
+ */
+export function configAlarmSuffix(
+  configType: ConfigDefaultType,
+  metricName: string,
+  localConfig?: ConfigMetricAlarms,
+): string | undefined {
+  return localConfig?.[metricName]?.suffix || configGetDefault(configType, metricName)?.suffix
 }
 
 /**
