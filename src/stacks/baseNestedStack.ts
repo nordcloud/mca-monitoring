@@ -39,6 +39,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf);
     const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf);
     const suffix = config.configAlarmSuffix(this.defaultType, metricName, localConf);
+    const fullMetricName = suffix ? `${metricName}-${suffix}` : metricName;
 
     if (!isEnabled) {
       return;
@@ -46,10 +47,11 @@ export default class BaseNestedStack extends cfn.NestedStack {
 
     const metric = new cw.Metric({
       ...getMetricConfig(this.defaultType, metricName, localConf),
+      metricName: fullMetricName,
       dimensions,
     });
 
-    const alarmName = `${localName}-${suffix || metricName}`;
+    const alarmName = `${localName}-${fullMetricName}`;
     const alarm = metric.createAlarm(this, alarmName, {
       ...getAlarmConfig(this.defaultType, metricName, localConf),
       alarmName,
