@@ -4,6 +4,7 @@ import * as sns from '@aws-cdk/aws-sns';
 import * as snsSub from '@aws-cdk/aws-sns-subscriptions';
 import * as cw from '@aws-cdk/aws-cloudwatch';
 import * as cwa from '@aws-cdk/aws-cloudwatch-actions';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 import * as config from '../utils/config';
 
@@ -42,6 +43,11 @@ export class NestedSNSStack extends cfn.NestedStack {
     if (autoResolve) {
       alarm.addOkAction(this.topicAction);
     }
+  }
+
+  // Add lambda subscription
+  public addLambdaSubscription(lambda: lambda.Function): void {
+    this.topic.addSubscription(new snsSub.LambdaSubscription(lambda));
   }
 }
 

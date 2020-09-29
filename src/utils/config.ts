@@ -165,9 +165,14 @@ export interface ConfigCustomSNS {
   endpoints?: string[];
 }
 
+export interface ConfigCustomSlackNotifications {
+  webhook: string;
+}
+
 export interface ConfigCustom {
   default: ConfigCustomDefaults;
   snsTopic: ConfigCustomSNS;
+  slackNotifications: ConfigCustomSlackNotifications;
 }
 
 export interface Config {
@@ -211,6 +216,13 @@ export function loadConfig(configPath: string): void {
  */
 export function configGetSNSTopic(): ConfigCustomSNS | undefined {
   return configFile?.custom?.snsTopic;
+}
+
+/**
+ * Get Slack endpoint details from config
+ */
+export function configGetCustomSlackNotifications(): ConfigCustomSlackNotifications | undefined {
+  return configFile?.custom?.slackNotifications;
 }
 
 export enum ConfigLocalType {
@@ -378,7 +390,7 @@ export function configAlarmSuffix(
   metricName: string,
   localConfig?: ConfigMetricAlarms,
 ): string | undefined {
-  return localConfig?.[metricName]?.suffix || configGetDefault(configType, metricName)?.suffix
+  return localConfig?.[metricName]?.suffix || configGetDefault(configType, metricName)?.suffix;
 }
 
 /**
