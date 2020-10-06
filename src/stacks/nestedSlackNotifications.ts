@@ -17,7 +17,7 @@ export class NestedSlackNotificationsStack extends cfn.NestedStack {
     const handler = new lambda.Function(this, 'SnsToSlackHandler', {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.asset('node_modules/mca-monitoring/dist/lambda'),
-      handler: 'snsToSlackHandler',
+      handler: 'index.snsToSlackHandler',
       environment: {
         SLACK_WEBHOOK: webhook,
       },
