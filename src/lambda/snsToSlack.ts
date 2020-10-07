@@ -1,5 +1,7 @@
 import * as https from 'https';
 import * as util from 'util';
+import { IncomingMessage } from 'http';
+import { SNSEvent } from 'aws-lambda';
 
 interface PostDataAttachment {
   color?: string;
@@ -18,18 +20,24 @@ interface SlackHookPostData {
   attachments: PostDataAttachment[];
 }
 
-export const snsToSlackHandler = async (event: any, context: any): Promise<void> => {
-  const { SLACK_WEBHOOK } = process.env;
+enum Severity {
+  Good = 'good',
+  Warning = 'warning',
+}
 
-  const message = JSON.parse(event?.Records[0]?.Sns?.Message || {});
+const slackWebhook = process.env.SLACK_WEBHOOK as string;
+
+export const snsToSlackHandler = async (event: SNSEvent): Promise<void> => {
+  const message = JSON.parse(event?.Records[0]?.Sns?.Message || '{}');
   const region = event?.Records[0]?.EventSubscriptionArn?.split(':')[3];
   const { AlarmName } = message;
-  const severity = message?.NewStateValue === 'OK' ? 'good' : 'warning';
+  const severity = message?.NewStateValue === 'OK' ? Severity.Good : Severity.Warning;
   const cwUrl =
+    region &&
     'https://console.aws.amazon.com/cloudwatch/home?region=' +
-    region +
-    '#alarm:alarmFilter=ANY;name=' +
-    encodeURIComponent(AlarmName);
+      region +
+      '#alarm:alarmFilter=ANY;name=' +
+      encodeURIComponent(AlarmName);
 
   const slackMessageFields = {
     CloudWatchUrl: cwUrl,
@@ -74,29 +82,22 @@ export const snsToSlackHandler = async (event: any, context: any): Promise<void>
     method: 'POST',
     hostname: slackHostname,
     port: 443,
-    path: (SLACK_WEBHOOK || '').replace(`https://${slackHostname}`, ''),
+    path: (slackWebhook || '').replace(`https://${slackHostname}`, ''),
   };
 
-  try {
-    await new Promise((resolve, reject) => {
-      const req = https.request(options, (res: any) => {
-        res.setEncoding('utf8');
-        res.on('data', () => {
-          resolve();
-        });
+  await new Promise((resolve, reject) => {
+    const req = https.request(options, (res: IncomingMessage) => {
+      res.setEncoding('utf8');
+      res.on('data', () => {
+        resolve();
       });
-
-      req.on('error', (e: any) => {
-        reject(e);
-      });
-
-      req.write(util.format('%j', postData));
-      req.end();
     });
 
-    context.done(null);
-  } catch (e) {
-    console.error(e);
-    context.done(e);
-  }
+    req.on('error', (e: Error) => {
+      reject(e);
+    });
+
+    req.write(util.format('%j', postData));
+    req.end();
+  });
 };
