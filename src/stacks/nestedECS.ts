@@ -22,7 +22,7 @@ export class NestedClusterAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    clusters: config.ConfigLocals,
+    clusters: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -34,7 +34,9 @@ export class NestedClusterAlarmsStack extends BaseNestedStack {
       };
 
       clusterMetrics.forEach(metricName => {
-        this.setupAlarm(name, metricName, clusterConf, dimensions);
+        if (clusterConf[metricName]) {
+          this.setupAlarm(name, metricName, clusterConf[metricName], dimensions);
+        }
       });
     });
   }

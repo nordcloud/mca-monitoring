@@ -39,7 +39,7 @@ export class NestedTableAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    tables: config.ConfigLocals,
+    tables: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -52,7 +52,9 @@ export class NestedTableAlarmsStack extends BaseNestedStack {
       };
 
       tableMetrics.forEach(metricName => {
-        this.setupAlarm(tableName, metricName, tableConfig, dimensions);
+        if (tableConfig[metricName]) {
+          this.setupAlarm(tableName, metricName, tableConfig[metricName], dimensions);
+        }
       });
     });
   }

@@ -7,9 +7,8 @@ import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
 import { chunk } from '../utils/utils';
-import { getMetricFilterConfig } from '../utils/logGroup';
-import { getMetricConfig } from '../utils/metric';
-import { getAlarmConfig } from '../utils/alarm';
+import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
+import { getDuration, defaultConfigToNameSpace } from '../utils/metric';
 
 const defaultType = config.ConfigDefaultType.LogGroup;
 const localType = config.ConfigLocalType.LogGroup;
@@ -27,34 +26,20 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    logGroups: config.ConfigLocals,
+    logGroups: config.ConfigLocals<config.ConfigLogGroupAlarms>,
     props?: NestedLogGroupAlarmsStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
     Object.keys(logGroups).forEach(groupName => {
       const groupConfig = logGroups[groupName];
-      const metricFilterNames = Array.from(
-        new Set([
-          ...Object.keys(config.configGetAllDefaults(this.defaultType) as config.ConfigLogGroupAlarms),
-          ...Object.keys(groupConfig),
-        ]),
-      );
 
-      metricFilterNames.forEach(metricFilterName => {
-        const { pattern }: config.MetricFilterOptions = getMetricFilterConfig(
-          this.defaultType,
-          metricFilterName,
-          groupConfig,
-        );
-
-        if (props?.metricFilter === undefined || props?.metricFilter === true) {
-          this.setupMetricFilter(groupName, metricFilterName, pattern as string, groupConfig);
+      Object.keys(groupConfig).forEach(metricFilterName => {
+        const local = groupConfig[metricFilterName];
+        if (local && local?.filter?.pattern) {
+          this.setupMetricFilter(groupName, metricFilterName, local?.filter?.pattern, local);
+          this.setupMetricFilterAlarm(groupName, metricFilterName, local);
         }
-
-        const metricName = `${groupName}-${metricFilterName}`;
-
-        this.setupMetricFilterAlarm(`${groupName}-alarm`, metricFilterName, metricName, groupConfig);
       });
     });
   }
@@ -63,17 +48,15 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
     groupName: string,
     metricFilterName: string,
     pattern: string,
-    localConf: config.ConfigMetricAlarms,
+    localConf: config.ConfigMetricAlarm,
   ): void {
-    const isEnabled = config.configIsEnabled(this.defaultType, metricFilterName, localConf);
-    const suffix = config.configAlarmSuffix(this.defaultType, metricFilterName, localConf);
-    const fullMetricFilterName = suffix ? `${metricFilterName}-${suffix}` : metricFilterName;
-
-    if (!isEnabled) {
+    const isEnabled = localConf.enabled !== false;
+    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled === true);
+    if (!isEnabled && !localEnabled) {
       return;
     }
 
-    const name = `${groupName}-${fullMetricFilterName}`;
+    const name = `${groupName}-${metricFilterName}`;
     new logs.MetricFilter(this, name, {
       filterPattern: logs.FilterPattern.literal(pattern),
       logGroup: logs.LogGroup.fromLogGroupName(this, `${name}-log-group`, groupName),
@@ -85,34 +68,50 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
   }
 
   protected setupMetricFilterAlarm(
-    localName: string,
-    metricConfigName: string,
-    metricName: string,
-    localConf: config.ConfigMetricAlarms,
+    groupName: string,
+    metricFilterName: string,
+    localConf: config.ConfigMetricAlarm,
   ): void {
-    const autoResolve = config.configAutoResolve(this.defaultType, metricConfigName, localConf);
-    const isEnabled = config.configIsEnabled(this.defaultType, metricConfigName, localConf);
-    const suffix = config.configAlarmSuffix(this.defaultType, metricConfigName, localConf);
-    const fullMetricName = suffix ? `${metricName}-${suffix}` : metricName;
+    const isEnabled = localConf.enabled !== false;
+    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled !== false);
+    if (!isEnabled && !localEnabled) {
+      return;
+    }
 
-    if (!isEnabled) {
+    if (!localConf.metric) {
+      console.error(`Missing metric for ${groupName}-${metricFilterName}`);
+      return;
+    }
+
+    if (!localConf.alarm) {
+      console.error(`Missing alarms for ${groupName}-${metricFilterName}`);
       return;
     }
 
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricConfigName, localConf),
-      metricName: fullMetricName,
+      period: getDuration(localConf.metric?.period),
+      namespace: defaultConfigToNameSpace(this.defaultType),
+      metricName: metricFilterName,
       // unit is not defined with custom metrics,
       // so it can break the connection between the alarm and metric
       unit: undefined,
     });
 
-    const alarm = metric.createAlarm(this, `${localName}-${fullMetricName}`, {
-      ...getAlarmConfig(this.defaultType, metricConfigName, localConf),
-      alarmName: fullMetricName,
-    });
+    Object.keys(localConf?.alarm || {}).forEach(topic => {
+      const conf = localConf?.alarm?.[topic];
+      if (conf && conf.enabled !== false) {
+        const alarmName = `${groupName}-${metricFilterName}-${topic}`;
+        const alarm = metric.createAlarm(this, alarmName, {
+          ...conf,
+          treatMissingData: getTreatMissingData(conf?.treatMissingData),
+          comparisonOperator: getComparisonOperator(conf?.comparisonOperator),
+          alarmName,
+          actionsEnabled: true,
+        });
 
-    this.snsStack.addAlarmActions(alarm, autoResolve);
+        this.snsStack.addAlarmActions(topic, alarm, localConf.autoResolve === true || conf.autoResolve === true);
+      }
+    });
   }
 }
 

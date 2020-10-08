@@ -43,7 +43,7 @@ export class NestedRDSAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    instances: config.ConfigLocals,
+    instances: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -56,7 +56,9 @@ export class NestedRDSAlarmsStack extends BaseNestedStack {
       };
 
       rdsMetrics.forEach(metricName => {
-        this.setupAlarm(instanceName, metricName, instanceConfig, dimensions);
+        if (instanceConfig[metricName]) {
+          this.setupAlarm(instanceName, metricName, instanceConfig[metricName], dimensions);
+        }
       });
     });
   }

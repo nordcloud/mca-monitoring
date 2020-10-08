@@ -4,8 +4,8 @@ import * as cw from '@aws-cdk/aws-cloudwatch';
 
 import * as config from '../utils/config';
 import { NestedSNSStack } from './nestedSns';
-import { getAlarmConfig } from '../utils/alarm';
-import { getMetricConfig } from '../utils/metric';
+import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
+import { getUnit, getDuration, defaultConfigToNameSpace } from '../utils/metric';
 
 export interface SetupAlarmOpts {
   aliases?: string[];
@@ -33,30 +33,48 @@ export default class BaseNestedStack extends cfn.NestedStack {
   protected setupAlarm(
     localName: string,
     metricName: string,
-    localConf: config.ConfigMetricAlarms,
+    localConf: config.ConfigMetricAlarm,
     dimensions?: object,
   ): void {
-    const autoResolve = config.configAutoResolve(this.defaultType, metricName, localConf);
-    const isEnabled = config.configIsEnabled(this.defaultType, metricName, localConf);
-    const suffix = config.configAlarmSuffix(this.defaultType, metricName, localConf);
-    const fullMetricName = suffix ? `${metricName}-${suffix}` : metricName;
+    const isEnabled = localConf.enabled !== false;
+    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled === true);
+    if (!isEnabled && !localEnabled) {
+      return;
+    }
 
-    if (!isEnabled) {
+    if (!localConf.metric) {
+      console.error(`Missing metric for ${localName}-${metricName}`);
+      return;
+    }
+
+    if (!localConf.alarm) {
+      console.error(`Missing alarms for ${localName}-${metricName}`);
       return;
     }
 
     const metric = new cw.Metric({
-      ...getMetricConfig(this.defaultType, metricName, localConf),
-      metricName: fullMetricName,
+      ...localConf.metric,
+      unit: getUnit(localConf.metric?.unit),
+      period: getDuration(localConf.metric?.period),
+      metricName,
       dimensions,
+      namespace: defaultConfigToNameSpace(this.defaultType),
     });
 
-    const alarmName = `${localName}-${fullMetricName}`;
-    const alarm = metric.createAlarm(this, alarmName, {
-      ...getAlarmConfig(this.defaultType, metricName, localConf),
-      alarmName,
-    });
+    Object.keys(localConf?.alarm || {}).forEach(topic => {
+      const conf = localConf?.alarm?.[topic];
+      if (conf && conf.enabled !== false) {
+        const alarmName = `${localName}-${metricName}-${topic}`;
+        const alarm = metric.createAlarm(this, alarmName, {
+          ...conf,
+          treatMissingData: getTreatMissingData(conf?.treatMissingData),
+          comparisonOperator: getComparisonOperator(conf?.comparisonOperator),
+          alarmName,
+          actionsEnabled: true,
+        });
 
-    this.snsStack.addAlarmActions(alarm, autoResolve);
+        this.snsStack.addAlarmActions(topic, alarm, localConf.autoResolve === true || conf.autoResolve === true);
+      }
+    });
   }
 }
