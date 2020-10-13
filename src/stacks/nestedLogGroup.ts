@@ -50,9 +50,7 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
     pattern: string,
     localConf: config.ConfigMetricAlarm,
   ): void {
-    const isEnabled = localConf.enabled !== false;
-    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled === true);
-    if (!isEnabled && !localEnabled) {
+    if (!config.configIsEnabled(localConf)) {
       return;
     }
 
@@ -72,9 +70,7 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
     metricFilterName: string,
     localConf: config.ConfigMetricAlarm,
   ): void {
-    const isEnabled = localConf.enabled !== false;
-    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled !== false);
-    if (!isEnabled && !localEnabled) {
+    if (!config.configIsEnabled(localConf)) {
       return;
     }
 

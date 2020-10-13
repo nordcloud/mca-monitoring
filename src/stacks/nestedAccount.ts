@@ -30,9 +30,7 @@ export class NestedAccountAlarmsStack extends cfn.NestedStack {
       return;
     }
 
-    const isEnabled = conf.enabled;
-    const localEnabled = Object.values(conf.alarm || {}).find(l => l.enabled === true);
-    if (!isEnabled && !localEnabled) {
+    if (!config.configIsEnabled(conf)) {
       return;
     }
 

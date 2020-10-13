@@ -36,9 +36,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     localConf: config.ConfigMetricAlarm,
     dimensions?: object,
   ): void {
-    const isEnabled = localConf.enabled !== false;
-    const localEnabled = Object.values(localConf.alarm || {}).find(l => l.enabled === true);
-    if (!isEnabled && !localEnabled) {
+    if (!config.configIsEnabled(localConf)) {
       return;
     }
 

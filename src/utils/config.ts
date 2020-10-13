@@ -384,19 +384,16 @@ export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAla
 }
 
 /**
- * Check if metric is enabled for local or default config
+ * Check if config has either local or global enabled
  */
-export function configIsEnabled(
-  configType: ConfigDefaultType,
-  metricName: string,
-  localConfig?: ConfigMetricAlarms,
-): boolean {
-  const local = localConfig?.[metricName]?.enabled;
-  if (local === false) {
-    return false;
+export function configIsEnabled<T extends ConfigMetricAlarm = ConfigMetricAlarm>(config: T): boolean {
+  // Check global setting first
+  if (!config.enabled !== false) {
+    return true;
   }
 
-  return configGetDefault(configType, metricName)?.enabled === true || local === true;
+  // Check local alarm settings
+  return Object.values(config.alarm || {}).find(l => l.enabled === true) !== undefined;
 }
 
 /**
