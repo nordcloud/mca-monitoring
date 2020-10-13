@@ -136,15 +136,15 @@ export interface TopicMap<T> {
   [topic: string]: T;
 }
 
-export interface ConfigMetricAlarm {
+export interface ConfigMetricAlarm<T = AlarmOptions, K = MetricOptions> {
   enabled?: boolean;
   autoResolve?: boolean;
-  alarm?: TopicMap<AlarmOptions>;
-  metric?: MetricOptions;
+  alarm?: TopicMap<T>;
+  metric?: K;
 }
 
-export interface ConfigMetricAlarms {
-  [key: string]: ConfigMetricAlarm;
+export interface ConfigMetricAlarms<T = AlarmOptions, K = MetricOptions> {
+  [key: string]: ConfigMetricAlarm<T, K>;
 }
 
 export interface ConfigLogGroupAlarm extends ConfigMetricAlarm {
@@ -383,10 +383,15 @@ export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAla
   }, {});
 }
 
+interface EnabledConfig {
+  enabled?: boolean
+  alarm?: TopicMap<{ enabled?: boolean }>
+}
+
 /**
  * Check if config has either local or global enabled
  */
-export function configIsEnabled<T extends ConfigMetricAlarm = ConfigMetricAlarm>(config: T): boolean {
+export function configIsEnabled<T extends EnabledConfig>(config: T): boolean {
   // Check global setting first
   if (config.enabled !== false) {
     return true;
