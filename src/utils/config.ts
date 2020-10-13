@@ -388,7 +388,7 @@ export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAla
  */
 export function configIsEnabled<T extends ConfigMetricAlarm = ConfigMetricAlarm>(config: T): boolean {
   // Check global setting first
-  if (!config.enabled !== false) {
+  if (config.enabled !== false) {
     return true;
   }
 
