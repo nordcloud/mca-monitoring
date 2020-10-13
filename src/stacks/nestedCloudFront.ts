@@ -31,7 +31,7 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    distributions: config.ConfigLocals,
+    distributions: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -43,7 +43,9 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
       };
 
       cloudFrontMetrics.forEach(metricName => {
-        this.setupAlarm(id, metricName, conf, dimensions);
+        if (conf[metricName]) {
+          this.setupAlarm(id, metricName, conf[metricName], dimensions);
+        }
       });
     });
   }

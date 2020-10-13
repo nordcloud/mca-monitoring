@@ -107,7 +107,7 @@ export function setupMonitoringStack(app: cdk.Construct, id: string, props?: cdk
     props = {
       ...(props || {}),
       stackName: id,
-    }
+    };
   }
   return new MonitoringStack(app, id, props);
 }
