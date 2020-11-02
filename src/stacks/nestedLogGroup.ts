@@ -84,10 +84,12 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
       return;
     }
 
+    const metricName = `${groupName}-${metricFilterName}`;
     const metric = new cw.Metric({
+      ...localConf.metric,
       period: getDuration(localConf.metric?.period),
       namespace: defaultConfigToNameSpace(this.defaultType),
-      metricName: metricFilterName,
+      metricName,
       // unit is not defined with custom metrics,
       // so it can break the connection between the alarm and metric
       unit: undefined,
