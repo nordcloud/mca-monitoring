@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.1](https://github.com/nordcloud/mca-monitoring/compare/v0.1.0...v0.1.1) (2020-11-02)
+
+
+### Bug Fixes
+
+* Log group metric and statistics are now correct ([#5](https://github.com/nordcloud/mca-monitoring/issues/5)) ([b7af7c1](https://github.com/nordcloud/mca-monitoring/commit/b7af7c12bf6b3d2a4a0e321b6c013f94c3bfe995))
+
 ## [0.1.0](https://github.com/nordcloud/mca-monitoring/compare/v0.0.8...v0.1.0) (2020-10-13)
 
 
