@@ -31,7 +31,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    lambdas: config.ConfigLocals,
+    lambdas: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -44,7 +44,9 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
       };
 
       lambdaMetrics.forEach(metricName => {
-        this.setupAlarm(lambdaName, metricName, lambdaConfig, dimensions);
+        if (lambdaConfig[metricName]) {
+          this.setupAlarm(lambdaName, metricName, lambdaConfig[metricName], dimensions);
+        }
       });
     });
   }

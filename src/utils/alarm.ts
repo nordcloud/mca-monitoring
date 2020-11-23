@@ -1,8 +1,6 @@
 import * as cw from '@aws-cdk/aws-cloudwatch';
 
-import * as config from './config';
-
-function getComparisonOperator(str?: string): cw.ComparisonOperator {
+export function getComparisonOperator(str?: string): cw.ComparisonOperator {
   if (!str) {
     return cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD;
   }
@@ -34,7 +32,7 @@ function getComparisonOperator(str?: string): cw.ComparisonOperator {
  *
  * Default value: NOT_BREACHING
  */
-function getTreatMissingData(str?: string): cw.TreatMissingData {
+export function getTreatMissingData(str?: string): cw.TreatMissingData {
   if (!str) {
     return cw.TreatMissingData.NOT_BREACHING;
   }
@@ -52,29 +50,3 @@ function getTreatMissingData(str?: string): cw.TreatMissingData {
       return cw.TreatMissingData.NOT_BREACHING;
   }
 }
-
-export const getAlarmConfig = (
-  configType: config.ConfigDefaultType,
-  alarmName: string,
-  conf?: config.ConfigMetricAlarms,
-): cw.CreateAlarmOptions => {
-  const combined: config.AlarmOptions = {
-    // Add required default values
-    threshold: 100,
-    evaluationPeriods: 2,
-
-    // Add config values
-    ...(config.configGetDefault(configType, alarmName)?.alarm || {}),
-    ...(conf?.[alarmName]?.alarm || {}),
-  };
-
-  // Generate initial config
-  return {
-    ...combined,
-    treatMissingData: getTreatMissingData(combined?.treatMissingData),
-    comparisonOperator: getComparisonOperator(combined?.comparisonOperator),
-
-    // Make sure config doesn't override these
-    actionsEnabled: true,
-  };
-};

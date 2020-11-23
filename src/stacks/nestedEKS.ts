@@ -43,7 +43,7 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    clusters: config.ConfigLocals,
+    clusters: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -56,7 +56,9 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
       };
 
       eksMetrics.forEach(metricName => {
-        this.setupAlarm(clusterName, metricName, clusterConfig, dimensions);
+        if (clusterConfig[metricName]) {
+          this.setupAlarm(clusterName, metricName, clusterConfig[metricName], dimensions);
+        }
       });
     });
   }

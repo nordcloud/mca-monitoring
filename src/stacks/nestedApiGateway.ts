@@ -24,7 +24,7 @@ export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    routes: config.ConfigLocals,
+    routes: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
@@ -36,7 +36,9 @@ export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
       };
 
       apiGatewayMetrics.forEach(metricName => {
-        this.setupAlarm(name, metricName, routeConf, dimensions);
+        if (routeConf[metricName]) {
+          this.setupAlarm(name, metricName, routeConf[metricName], dimensions);
+        }
       });
     });
   }

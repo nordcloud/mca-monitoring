@@ -10,38 +10,49 @@ import * as config from '../utils/config';
 
 // Generate nested stack for sns topics
 export class NestedSNSStack extends cfn.NestedStack {
-  private topic: sns.ITopic;
-  private topicAction: cwa.SnsAction;
+  private topics: config.TopicMap<sns.ITopic> = {};
+  private topicActions: config.TopicMap<cwa.SnsAction> = {};
 
   constructor(scope: cdk.Construct, id: string, props?: cfn.NestedStackProps) {
     super(scope, id, props);
 
-    const { id: topicId, name, emails = [], endpoints = [] } = config.configGetSNSTopic() || {};
+    const topics = config.configGetSNSTopics() || {};
+    Object.keys(topics).forEach(topic => {
+      this.createTopic(topic, topics[topic]);
+    });
+  }
 
+  private createTopic(topic: string, { id, name, emails = [], endpoints = [] }: config.ConfigCustomSNS): void {
     // Create topic
-    this.topic = new sns.Topic(this, `${id}-topic`, {
+    this.topics[topic] = new sns.Topic(this, `${id}-${topic}`, {
       displayName: name,
-      topicName: topicId,
+      topicName: id,
     });
 
     // Add email addresses
     emails.forEach(email => {
-      this.topic.addSubscription(new snsSub.EmailSubscription(email));
+      this.topics?.[topic]?.addSubscription(new snsSub.EmailSubscription(email));
     });
 
     // Add endpoints
     endpoints.forEach(endpoint => {
-      this.topic.addSubscription(new snsSub.UrlSubscription(endpoint));
+      this.topics?.[topic]?.addSubscription(new snsSub.UrlSubscription(endpoint));
     });
 
-    this.topicAction = new cwa.SnsAction(this.topic);
+    this.topicActions[topic] = new cwa.SnsAction(this.topics[topic]);
   }
 
   // Add actions for alarm
-  public addAlarmActions(alarm: cw.Alarm, autoResolve = false): void {
-    alarm.addAlarmAction(this.topicAction);
+  public addAlarmActions(topic: string, alarm: cw.Alarm, autoResolve = false): void {
+    const topicAction = this.topicActions[topic];
+    if (!topicAction) {
+      throw new Error(`Missing topic actions for topic '${topic}'`);
+    }
+
+    alarm.addAlarmAction(topicAction);
+
     if (autoResolve) {
-      alarm.addOkAction(this.topicAction);
+      alarm.addOkAction(topicAction);
     }
   }
 
@@ -52,7 +63,7 @@ export class NestedSNSStack extends cfn.NestedStack {
 }
 
 export function createSNSStack(stack: cdk.Stack): NestedSNSStack {
-  if (!config.configGetSNSTopic()) {
+  if (!config.configGetSNSTopics()) {
     throw new Error('No SNS topics defined in the config');
   }
 

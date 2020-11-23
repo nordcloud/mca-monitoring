@@ -1,8 +1,8 @@
 // Ignored due to issue with building postinstall
 // @ts-ignore
 import * as fs from 'fs';
-
 import * as yaml from 'js-yaml';
+import deepMerge from 'deepmerge';
 
 /**
  * CLI config in the config file
@@ -17,6 +17,16 @@ export interface ConfigCLI {
 
 export interface AlarmOptions {
   /**
+   * Enable alarm
+   */
+  readonly enabled?: boolean;
+
+  /**
+   * Autoresolve alarm
+   */
+  readonly autoResolve?: boolean;
+
+  /**
    * Name of the alarm
    */
   readonly alarmName?: string;
@@ -24,7 +34,7 @@ export interface AlarmOptions {
   /**
    * Description for the alarm
    */
-  readonly description?: string;
+  readonly alarmDescription?: string;
 
   /**
    * Comparison to use to check if metric is breaching
@@ -122,16 +132,19 @@ export interface MetricFilterOptions {
   pattern?: string;
 }
 
-export interface ConfigMetricAlarm {
-  enabled?: boolean;
-  autoResolve?: boolean;
-  suffix?: string;
-  alarm?: AlarmOptions;
-  metric?: MetricOptions;
+export interface TopicMap<T> {
+  [topic: string]: T;
 }
 
-export interface ConfigMetricAlarms {
-  [key: string]: ConfigMetricAlarm;
+export interface ConfigMetricAlarm<T = AlarmOptions, K = MetricOptions> {
+  enabled?: boolean;
+  autoResolve?: boolean;
+  alarm?: TopicMap<T>;
+  metric?: K;
+}
+
+export interface ConfigMetricAlarms<T = AlarmOptions, K = MetricOptions> {
+  [key: string]: ConfigMetricAlarm<T, K>;
 }
 
 export interface ConfigLogGroupAlarm extends ConfigMetricAlarm {
@@ -142,8 +155,8 @@ export interface ConfigLogGroupAlarms {
   [key: string]: ConfigLogGroupAlarm;
 }
 
-export interface ConfigLocals {
-  [key: string]: ConfigMetricAlarms;
+export interface ConfigLocals<T> {
+  [key: string]: T;
 }
 
 export interface ConfigCustomDefaults {
@@ -177,15 +190,15 @@ export interface ConfigCustom {
 
 export interface Config {
   cli: ConfigCLI;
-  lambdas?: ConfigLocals;
-  tables?: ConfigLocals;
-  clusters?: ConfigLocals;
-  routes?: ConfigLocals;
-  distributions?: ConfigLocals;
-  rdsInstances?: ConfigLocals;
-  eksClusters?: ConfigLocals;
-  logGroups?: ConfigLocals;
   custom: ConfigCustom;
+  lambdas?: ConfigLocals<ConfigMetricAlarms>;
+  tables?: ConfigLocals<ConfigMetricAlarms>;
+  clusters?: ConfigLocals<ConfigMetricAlarms>;
+  routes?: ConfigLocals<ConfigMetricAlarms>;
+  distributions?: ConfigLocals<ConfigMetricAlarms>;
+  rdsInstances?: ConfigLocals<ConfigMetricAlarms>;
+  eksClusters?: ConfigLocals<ConfigMetricAlarms>;
+  logGroups?: ConfigLocals<ConfigLogGroupAlarms>;
 }
 
 let configFile: Config | undefined;
@@ -214,7 +227,7 @@ export function loadConfig(configPath: string): void {
 /**
  * Get SNS topic from config
  */
-export function configGetSNSTopic(): ConfigCustomSNS | undefined {
+export function configGetSNSTopics(): TopicMap<ConfigCustomSNS> | undefined {
   return configFile?.custom?.snsTopic;
 }
 
@@ -253,7 +266,7 @@ export enum ConfigDefaultType {
  *
  * Convert local config type to default config
  */
-export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType | undefined {
+export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefaultType {
   switch (confType) {
     case ConfigLocalType.Lambda:
       return ConfigDefaultType.Lambda;
@@ -272,7 +285,7 @@ export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefau
     case ConfigLocalType.LogGroup:
       return ConfigDefaultType.LogGroup;
     default:
-      return undefined;
+      return ConfigDefaultType.LogGroup;
   }
 }
 
@@ -281,7 +294,7 @@ export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefau
  *
  * Convert local config type to default config
  */
-export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLocalType | undefined {
+export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLocalType {
   switch (confType) {
     case ConfigDefaultType.Lambda:
       return ConfigLocalType.Lambda;
@@ -300,28 +313,79 @@ export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLoc
     case ConfigDefaultType.LogGroup:
       return ConfigLocalType.LogGroup;
     default:
-      return undefined;
+      return ConfigLocalType.LogGroup;
   }
+}
+
+/**
+ * Get all default configs from config file
+ */
+export function configGetAllDefaults<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  configType: ConfigDefaultType,
+): T | undefined {
+  return configFile?.custom?.default?.[configType] as T | undefined;
+}
+
+/**
+ * Get default configs from config file
+ */
+export function configGetDefault<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  configType: ConfigDefaultType,
+  metricName: string,
+): T | undefined {
+  return configGetAllDefaults(configType)?.[metricName] as T | undefined;
 }
 
 /**
  * Get all local values for type
  */
-export function configGetAll(confType: ConfigLocalType): ConfigLocals {
-  return configFile?.[confType] || {};
+export function configGetAll<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+): ConfigLocals<T> {
+  const defaults = configGetAllDefaults(configLocalTypeToDefault(confType));
+  if (defaults) {
+    const conf = configFile?.[confType];
+    if (conf) {
+      const keys = Object.keys(conf);
+      return keys.reduce((acc, key) => {
+        return {
+          ...acc,
+          [key]: deepMerge(defaults, conf[key]),
+        } as ConfigLocals<T>;
+      }, {} as ConfigLocals<T>);
+    }
+    return {};
+  }
+
+  return (configFile?.[confType] || {}) as ConfigLocals<T>;
 }
 
 /**
  * Get single config value for type
  */
-export function configGetSingle(confType: ConfigLocalType, name: string): ConfigMetricAlarms | undefined {
-  return configGetAll(confType)[name];
+export function configGetSingle<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+  name: string,
+): T | undefined {
+  const defaults = configGetAllDefaults(configLocalTypeToDefault(confType));
+  if (defaults) {
+    const conf = configFile?.[confType]?.[name];
+    if (conf) {
+      return deepMerge(defaults, conf) as T;
+    }
+    return undefined;
+  }
+
+  return configFile?.[confType]?.[name] as T | undefined;
 }
 
 /**
  * Get selected configs for type with given names
  */
-export function configGetSelected(confType: ConfigLocalType, names: string[]): ConfigLocals {
+export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+  names: string[],
+): ConfigLocals<T> {
   return names.reduce((acc, name) => {
     const val = configGetSingle(confType, name);
     if (val) {
@@ -331,39 +395,22 @@ export function configGetSelected(confType: ConfigLocalType, names: string[]): C
   }, {});
 }
 
-/**
- * Get default configs from config file
- */
-export function configGetDefault(
-  configType: ConfigDefaultType,
-  metricName: string,
-): ConfigMetricAlarm | ConfigLogGroupAlarm | undefined {
-  return configFile?.custom?.default?.[configType]?.[metricName];
+interface EnabledConfig {
+  enabled?: boolean
+  alarm?: TopicMap<{ enabled?: boolean }>
 }
 
 /**
- * Get all default configs from config file
+ * Check if config has either local or global enabled
  */
-export function configGetAllDefaults(
-  configType: ConfigDefaultType,
-): ConfigMetricAlarms | ConfigLogGroupAlarms | undefined {
-  return configFile?.custom?.default?.[configType];
-}
-
-/**
- * Check if metric is enabled for local or default config
- */
-export function configIsEnabled(
-  configType: ConfigDefaultType,
-  metricName: string,
-  localConfig?: ConfigMetricAlarms,
-): boolean {
-  const local = localConfig?.[metricName]?.enabled;
-  if (local === false) {
-    return false;
+export function configIsEnabled<T extends EnabledConfig>(config: T): boolean {
+  // Check global setting first
+  if (config.enabled !== false) {
+    return true;
   }
 
-  return configGetDefault(configType, metricName)?.enabled === true || local === true;
+  // Check local alarm settings
+  return Object.values(config.alarm || {}).find(l => l.enabled === true) !== undefined;
 }
 
 /**
@@ -383,46 +430,35 @@ export function configAutoResolve(
 }
 
 /**
- * Check if metric is enabled for local or default config
- */
-export function configAlarmSuffix(
-  configType: ConfigDefaultType,
-  metricName: string,
-  localConfig?: ConfigMetricAlarms,
-): string | undefined {
-  return localConfig?.[metricName]?.suffix || configGetDefault(configType, metricName)?.suffix;
-}
-
-/**
  * Get all local values that are enabled in either local or default config
  */
-export function configGetAllEnabled(confType: ConfigLocalType, metrics: string[]): ConfigLocals {
+export function configGetAllEnabled<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+  metrics: string[],
+): ConfigLocals<T> {
   const all = configGetAll(confType);
 
   return Object.keys(all).reduce((acc, key) => {
-    const local = all[key];
+    const locals = all[key];
 
-    const defaultType = configLocalTypeToDefault(confType);
-    if (defaultType) {
-      // Check if any metric is enabled in default or local
-      let isEnabled = false;
-      for (const metricName of metrics) {
-        if (configIsEnabled(defaultType, metricName, local)) {
-          isEnabled = true;
-          break;
-        }
-      }
-
-      // Add only if at least one value is enabled
-      if (isEnabled) {
-        return { ...acc, [key]: local };
-      }
-
-      // Skip adding as none was enabled
+    if (!locals) {
       return acc;
     }
 
-    // Add by default if local to default conversion is not supported
-    return { ...acc, [key]: local };
+    const isEnabled = Object.keys(locals).find(key => {
+      if (!metrics.includes(key)) {
+        return false;
+      }
+      const local = locals[key];
+      return local.enabled !== false || Object.values(local.alarm || {}).find(l => l.enabled !== false);
+    });
+
+    // Add only if at least one value is enabled
+    if (isEnabled) {
+      return { ...acc, [key]: locals };
+    }
+
+    // Skip adding as none was enabled
+    return acc;
   }, {});
 }

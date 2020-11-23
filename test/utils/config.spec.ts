@@ -1,7 +1,6 @@
 import test from 'ava';
 
 import * as config from '../../src/utils/config';
-import { getMetricConfig } from '../../src/utils/metric';
 import { lambdaMetrics } from '../../src/stacks/nestedLambda';
 
 const testConfig = `
@@ -30,9 +29,11 @@ custom:
       Errors:
         enabled: false
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 10
-          evaluationPeriods: 1
+          critical:
+            enabled: true,
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 10
+            evaluationPeriods: 1
         metric:
           period:
             minutes: 5
@@ -41,9 +42,11 @@ custom:
       Invocations:
         enabled: false
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 200
-          evaluationPeriods: 1
+          critical:
+            enabled: true,
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 200
+            evaluationPeriods: 1
         metric:
           period:
             minutes: 5
@@ -52,9 +55,10 @@ custom:
       Duration:
         enabled: false
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 2000
-          evaluationPeriods: 1
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 2000
+            evaluationPeriods: 1
         metric:
           period:
             minutes: 5
@@ -63,9 +67,10 @@ custom:
       Throttles:
         enabled: false
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 10
-          evaluationPeriods: 1
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 10
+            evaluationPeriods: 1
         metric:
           period:
             minutes: 5
@@ -75,9 +80,10 @@ custom:
       ConsumedReadCapacityUnits:
         enabled: true
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 10
-          evaluationPeriods: 5
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 10
+            evaluationPeriods: 5
         metric:
           period:
             minutes: 5
@@ -85,9 +91,10 @@ custom:
       ConsumedWriteCapacityUnits:
         enabled: true
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 200
-          evaluationPeriods: 5
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 200
+            evaluationPeriods: 5
         metric:
           period:
             minutes: 5
@@ -95,9 +102,10 @@ custom:
       ProvisionedReadCapacity:
         enabled: true
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 2000
-          evaluationPeriods: 5
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 2000
+            evaluationPeriods: 5
         metric:
           period:
             minutes: 5
@@ -105,9 +113,10 @@ custom:
       ProvisionedWriteCapacity:
         enabled: true
         alarm:
-          treatMissingData: 'NOT_BREACHING'
-          threshold: 10
-          evaluationPeriods: 5
+          critical:
+            treatMissingData: 'NOT_BREACHING'
+            threshold: 10
+            evaluationPeriods: 5
         metric:
           period:
             minutes: 5
@@ -162,11 +171,12 @@ custom:
       UserErrors:
         enabled: false
   snsTopics:
-    name: test topic
-    id: test-topic
-    endpoints: []
-    emails:
-      - application-management@nordcloud.com
+    critical:
+      name: test topic
+      id: test-topic
+      endpoints: []
+      emails:
+        - application-management@nordcloud.com
 `;
 config.loadConfigString(testConfig);
 
@@ -178,12 +188,4 @@ test('find all lambdas', t => {
 test('find only enabled lambdas', t => {
   const enabled = config.configGetAllEnabled(config.ConfigLocalType.Lambda, lambdaMetrics);
   t.is(Object.keys(enabled).length, 1);
-});
-
-test('get metric config', t => {
-  const local = config.configGetSingle(config.ConfigLocalType.Lambda, 'lambda-1');
-  const confType = config.ConfigDefaultType.Lambda;
-  const conf = getMetricConfig(confType, 'Errors', local);
-  t.is(conf.namespace, 'AWS/Lambda');
-  t.is(conf.statistic, 'Sum');
 });

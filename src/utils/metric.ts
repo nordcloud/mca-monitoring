@@ -3,7 +3,7 @@ import * as cw from '@aws-cdk/aws-cloudwatch';
 
 import * as config from './config';
 
-function getUnit(str?: string): cw.Unit | undefined {
+export function getUnit(str?: string): cw.Unit | undefined {
   if (!str) {
     return undefined;
   }
@@ -117,27 +117,4 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
     case config.ConfigDefaultType.LogGroup:
       return 'Custom';
   }
-}
-
-export function getMetricConfig(
-  configType: config.ConfigDefaultType,
-  metricName: string,
-  conf?: config.ConfigMetricAlarms,
-): cw.MetricProps {
-  const combined = {
-    ...(config.configGetDefault(configType, metricName)?.metric || {}),
-    ...(conf?.[metricName]?.metric || {}),
-  };
-
-  const obj: cw.MetricProps = {
-    ...combined,
-    unit: getUnit(combined.unit),
-    period: getDuration(combined.period),
-
-    // To make sure these are not overriden by config
-    metricName,
-    namespace: defaultConfigToNameSpace(configType),
-  };
-
-  return obj;
 }
