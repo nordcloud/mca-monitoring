@@ -396,8 +396,8 @@ export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAla
 }
 
 interface EnabledConfig {
-  enabled?: boolean
-  alarm?: TopicMap<{ enabled?: boolean }>
+  enabled?: boolean;
+  alarm?: TopicMap<{ enabled?: boolean }>;
 }
 
 /**
