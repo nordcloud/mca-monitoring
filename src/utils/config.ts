@@ -184,7 +184,7 @@ export interface ConfigCustomSlackNotifications {
 
 export interface ConfigCustom {
   default: ConfigCustomDefaults;
-  snsTopic: ConfigCustomSNS;
+  snsTopic: TopicMap<ConfigCustomSNS>;
   slackNotifications: ConfigCustomSlackNotifications;
 }
 
