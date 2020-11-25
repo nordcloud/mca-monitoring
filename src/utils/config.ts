@@ -176,16 +176,12 @@ export interface ConfigCustomSNS {
   name: string;
   emails?: string[];
   endpoints?: string[];
-}
-
-export interface ConfigCustomSlackNotifications {
-  webhook: string;
+  slackWebhook?: string;
 }
 
 export interface ConfigCustom {
   default: ConfigCustomDefaults;
   snsTopic: TopicMap<ConfigCustomSNS>;
-  slackNotifications: ConfigCustomSlackNotifications;
 }
 
 export interface Config {
@@ -229,13 +225,6 @@ export function loadConfig(configPath: string): void {
  */
 export function configGetSNSTopics(): TopicMap<ConfigCustomSNS> | undefined {
   return configFile?.custom?.snsTopic;
-}
-
-/**
- * Get Slack endpoint details from config
- */
-export function configGetCustomSlackNotifications(): ConfigCustomSlackNotifications | undefined {
-  return configFile?.custom?.slackNotifications;
 }
 
 export enum ConfigLocalType {

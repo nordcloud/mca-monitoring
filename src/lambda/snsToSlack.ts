@@ -1,7 +1,5 @@
-import * as https from 'https';
-import * as util from 'util';
-import { IncomingMessage } from 'http';
 import { SNSEvent } from 'aws-lambda';
+import fetch from 'node-fetch';
 
 interface PostDataAttachment {
   color?: string;
@@ -25,6 +23,7 @@ enum Severity {
   Warning = 'warning',
 }
 
+// absolute url
 const slackWebhook = process.env.SLACK_WEBHOOK as string;
 
 export const snsToSlackHandler = async (event: SNSEvent): Promise<void> => {
@@ -77,27 +76,8 @@ export const snsToSlackHandler = async (event: SNSEvent): Promise<void> => {
     ],
   };
 
-  const slackHostname = 'hooks.slack.com';
-  const options: https.RequestOptions = {
+  await fetch(slackWebhook, {
     method: 'POST',
-    hostname: slackHostname,
-    port: 443,
-    path: (slackWebhook || '').replace(`https://${slackHostname}`, ''),
-  };
-
-  await new Promise((resolve, reject) => {
-    const req = https.request(options, (res: IncomingMessage) => {
-      res.setEncoding('utf8');
-      res.on('data', () => {
-        resolve();
-      });
-    });
-
-    req.on('error', (e: Error) => {
-      reject(e);
-    });
-
-    req.write(util.format('%j', postData));
-    req.end();
+    body: JSON.stringify(postData),
   });
 };

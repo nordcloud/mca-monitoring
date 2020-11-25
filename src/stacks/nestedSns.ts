@@ -57,8 +57,8 @@ export class NestedSNSStack extends cfn.NestedStack {
   }
 
   // Add lambda subscription
-  public addLambdaSubscription(lambda: lambda.Function): void {
-    this.topic.addSubscription(new snsSub.LambdaSubscription(lambda));
+  public addLambdaSubscription(topic: string, lambda: lambda.Function): void {
+    this.topics?.[topic]?.addSubscription(new snsSub.LambdaSubscription(lambda));
   }
 }
 
