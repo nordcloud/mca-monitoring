@@ -41,8 +41,7 @@
   },
   "dependencies": {
     "deepmerge": "^4.2.2",
-    "js-yaml": "^3.14.0",
-    "node-fetch": "^2.6.1"
+    "js-yaml": "^3.14.0"
   },
   "devDependencies": {
     "@aws-cdk/aws-cloudformation": "^1.75.0",
@@ -75,6 +74,7 @@
     "jest": "^25.5.4",
     "jest-config": "^25.5.4",
     "lint-staged": "^8.0.0",
+    "node-fetch": "^2.6.1",
     "prettier": "^1.19.1",
     "semantic-release": "^17.1.2",
     "standard-version": "^9.0.0",
@@ -92,7 +92,9 @@
     "@aws-cdk/aws-logs": "1.x",
     "@aws-cdk/aws-sns": "1.x",
     "@aws-cdk/aws-sns-subscriptions": "1.x",
-    "@aws-cdk/core": "1.x"
+    "@aws-cdk/core": "1.x",
+    "esbuild": "0.x",
+    "node-fetch": "2.6.x"
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
