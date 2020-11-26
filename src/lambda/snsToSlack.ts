@@ -23,12 +23,23 @@ enum Severity {
   Warning = 'warning',
 }
 
+const allowedFields = [
+  'CloudWatchUrl',
+  'AlarmDescription',
+  'NewStateReason',
+  'NewStateValue',
+  'OldStateValue',
+  'StateChangeTime',
+  'Region',
+];
+
 // absolute url
 const slackWebhook = process.env.SLACK_WEBHOOK as string;
 
 export const snsToSlackHandler = async (event: SNSEvent): Promise<void> => {
   const message = JSON.parse(event?.Records[0]?.Sns?.Message || '{}');
   const region = event?.Records[0]?.EventSubscriptionArn?.split(':')[3];
+  const subject = event?.Records[0]?.Sns?.Subject;
   const { AlarmName } = message;
   const severity = message?.NewStateValue === 'OK' ? Severity.Good : Severity.Warning;
   const cwUrl =
@@ -43,19 +54,9 @@ export const snsToSlackHandler = async (event: SNSEvent): Promise<void> => {
     ...message,
   };
 
-  const allowedFields = [
-    'CloudWatchUrl',
-    'AlarmDescription',
-    'NewStateReason',
-    'NewStateValue',
-    'OldStateValue',
-    'StateChangeTime',
-    'Region',
-  ];
-
   const postData: SlackHookPostData = {
     username: 'AWS CloudWatch Warning',
-    text: '*' + event.Records[0].Sns.Subject + '*',
+    text: `*${subject}*`,
     // eslint-disable-next-line @typescript-eslint/camelcase
     icon_emoji: ':aws:',
     attachments: [
