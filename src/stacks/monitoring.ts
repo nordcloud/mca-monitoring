@@ -9,7 +9,6 @@ import { createCloudFrontAlarms, NestedCloudFrontAlarmsStack } from './nestedClo
 import { createRDSMonitoring, NestedRDSAlarmsStack } from './nestedRDS';
 import { createEKSMonitoring, NestedEKSAlarmsStack } from './nestedEKS';
 import { createLogGroupMonitoring, NestedLogGroupAlarmsStack, LogGroupsProps } from './nestedLogGroup';
-import { createNestedSlackNotifications, NestedSlackNotificationsStack } from './nestedSlackNotifications';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -90,13 +89,6 @@ export class MonitoringStack extends cdk.Stack {
    */
   public addDefaultLogGroupMonitoring(props?: LogGroupsProps): NestedLogGroupAlarmsStack[] {
     return createLogGroupMonitoring(this, this.snsStack, props);
-  }
-
-  /**
-   * Setup Slack Notifications
-   */
-  public addSlackNotifications(): NestedSlackNotificationsStack[] {
-    return createNestedSlackNotifications(this, this.snsStack);
   }
 }
 
