@@ -89,6 +89,7 @@
     "@aws-cdk/aws-cloudwatch-actions": "~1.75.0",
     "@aws-cdk/aws-dynamodb": "~1.75.0",
     "@aws-cdk/aws-lambda": "~1.75.0",
+    "@aws-cdk/aws-lambda-nodejs": "~1.75.0",
     "@aws-cdk/aws-logs": "~1.75.0",
     "@aws-cdk/aws-sns": "~1.75.0",
     "@aws-cdk/aws-sns-subscriptions": "~1.75.0",
