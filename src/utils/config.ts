@@ -176,6 +176,7 @@ export interface ConfigCustomSNS {
   name: string;
   emails?: string[];
   endpoints?: string[];
+  slackWebhook?: string;
 }
 
 export interface ConfigCustom {
@@ -384,8 +385,8 @@ export function configGetSelected<T extends ConfigMetricAlarms = ConfigMetricAla
 }
 
 interface EnabledConfig {
-  enabled?: boolean
-  alarm?: TopicMap<{ enabled?: boolean }>
+  enabled?: boolean;
+  alarm?: TopicMap<{ enabled?: boolean }>;
 }
 
 /**
