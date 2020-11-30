@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/nordcloud/mca-monitoring/compare/v0.1.1...v0.1.2) (2020-11-30)
+
+
+### Features
+
+* send alarms to slack channel ([#3](https://github.com/nordcloud/mca-monitoring/issues/3)) ([17bbddd](https://github.com/nordcloud/mca-monitoring/commit/17bbddd358972de5771fcfd6fd19fe4dc00aea3e))
+
 ### [0.1.1](https://github.com/nordcloud/mca-monitoring/compare/v0.1.0...v0.1.1) (2020-11-02)
 
 
