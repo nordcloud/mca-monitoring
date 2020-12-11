@@ -44,6 +44,10 @@ export class NestedSNSStack extends cfn.NestedStack {
     this.topicActions[topic] = new cwa.SnsAction(this.topics[topic]);
   }
 
+  public getTopicArn(topic: string): string {
+    return this.topics[topic].topicArn;
+  }
+
   // Add actions for alarm
   public addAlarmActions(topic: string, alarm: cw.Alarm, autoResolve = false): void {
     const topicAction = this.topicActions[topic];

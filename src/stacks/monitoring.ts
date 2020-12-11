@@ -9,6 +9,7 @@ import { createCloudFrontAlarms, NestedCloudFrontAlarmsStack } from './nestedClo
 import { createRDSMonitoring, NestedRDSAlarmsStack } from './nestedRDS';
 import { createEKSMonitoring, NestedEKSAlarmsStack } from './nestedEKS';
 import { createLogGroupMonitoring, NestedLogGroupAlarmsStack, LogGroupsProps } from './nestedLogGroup';
+import { createBillingAlertStack, NestedBillingAlertStack } from './nestedBillingAlert';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -26,6 +27,13 @@ export class MonitoringStack extends cdk.Stack {
    */
   public getSnsStack(): NestedSNSStack {
     return this.snsStack;
+  }
+
+  /**
+   * Setup billing alert
+   */
+  public addBillingAlert(): NestedBillingAlertStack {
+    return createBillingAlertStack(this, this.snsStack);
   }
 
   /**
