@@ -455,7 +455,10 @@ export function configGetAllEnabled<T extends ConfigMetricAlarms = ConfigMetricA
         return false;
       }
       const local = locals[key];
-      return local.enabled !== false || Object.values(local.alarm || {}).find(l => l.enabled !== false);
+      if (local.enabled === false) {
+        return Object.values(local.alarm || {}).find(l => l.enabled === true) !== undefined;
+      }
+      return Object.values(local.alarm || {}).find(l => l.enabled !== false) !== undefined;
     });
 
     // Add only if at least one value is enabled

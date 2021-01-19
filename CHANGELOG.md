@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/nordcloud/mca-monitoring/compare/v0.1.2...v0.1.3) (2021-01-08)
+
+
+### Bug Fixes
+
+* Check when local value has enabled false ([#6](https://github.com/nordcloud/mca-monitoring/issues/6)) ([751d119](https://github.com/nordcloud/mca-monitoring/commit/751d1197987b2ba6c82b4823425dc4d019efa866))
+
 ### [0.1.2](https://github.com/nordcloud/mca-monitoring/compare/v0.1.1...v0.1.2) (2020-11-30)
 
 
