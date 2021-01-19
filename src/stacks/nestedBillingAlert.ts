@@ -5,45 +5,42 @@ import * as b from '@aws-cdk/aws-budgets';
 
 import * as config from '../utils/config';
 
-import { CfnBudget, CfnBudgetProps } from '@aws-cdk/aws-budgets';
-import { CfnAlarmProps, CfnAnomalyDetectorProps } from '@aws-cdk/aws-cloudwatch';
 import { NestedSNSStack } from './nestedSns';
 
-const subscribers: Array<CfnBudget.SubscriberProperty> = [];
-const topicArns: Array<string> = [];
+import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
+import { getDuration } from '../utils/metric';
 
-// Generate nested stack for sns topics
+// Generate nested stack for billing alerts
 export class NestedBillingAlertStack extends cfn.NestedStack {
+  protected readonly snsStack: NestedSNSStack;
+
   constructor(scope: cdk.Construct, id: string, snsStack: NestedSNSStack, props?: cfn.NestedStackProps) {
     super(scope, id, props);
 
+    this.snsStack = snsStack;
     const billingAlert = config.configGetBillingAlert() || null;
-    const topics = config.configGetSNSTopics() || {};
 
     if (billingAlert && config.configIsEnabled(billingAlert)) {
-      Object.keys(topics).forEach(topic => {
-        const topicArn = cdk.Token.asString(snsStack.getTopicArn(topic));
-        subscribers.push({
-          subscriptionType: 'SNS',
-          address: topicArn,
-        });
-        topicArns.push(topicArn);
+      Object.keys(billingAlert.alarm || {}).forEach(topic => {
+        const conf = billingAlert.alarm?.[topic];
+        if (conf && conf.enabled !== false) {
+          this.createAnomalyDetectionAlarm(id, billingAlert, topic);
+          this.createBudgetAlarm(id, conf, topic);
+        }
       });
-
-      this.createAnomalyDetectionAlarm(id);
-      this.createBudgetAlarm(id, billingAlert.limit);
     }
   }
 
-  private createBudgetAlarm(id: string, limit: number): void {
-    const budgetName = `${id}-budget`;
+  private createBudgetAlarm(id: string, alarmOpts: config.BillingAlertAlarmOptions, topic: string): void {
+    const budgetName = `${id}-${topic}-budget`;
+    const topicArn = cdk.Token.asString(this.snsStack.getTopicArn(topic));
 
-    const budgetParams: CfnBudgetProps = {
+    const budgetParams: b.CfnBudgetProps = {
       budget: {
         budgetName: budgetName,
         budgetType: 'COST',
         budgetLimit: {
-          amount: limit,
+          amount: alarmOpts.budgetLimit,
           unit: 'USD',
         },
         timeUnit: 'MONTHLY',
@@ -56,7 +53,12 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
             threshold: 100,
             thresholdType: 'PERCENTAGE',
           },
-          subscribers: subscribers,
+          subscribers: [
+            {
+              subscriptionType: 'SNS',
+              address: topicArn,
+            },
+          ],
         },
       ],
     };
@@ -64,56 +66,58 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
     new b.CfnBudget(this, budgetName, budgetParams);
   }
 
-  private createAnomalyDetectionAlarm(id: string): void {
-    const anomalyDetectorName = `${id}-anomaly-detector`;
+  private createAnomalyDetectionAlarm(id: string, billingAlert: config.ConfigCustomBillingAlert, topic: string): void {
+    const topicArn = cdk.Token.asString(this.snsStack.getTopicArn(topic));
+    const conf = billingAlert.alarm?.[topic];
 
-    const anomalyDetectorParams: CfnAnomalyDetectorProps = {
-      metricName: `${id}-estimated-charges`,
-      namespace: 'AWS/Billing',
-      stat: 'Maximum',
-      dimensions: [
-        {
-          name: 'Currency',
-          value: 'USD',
+    if (conf && conf.enabled !== false) {
+      const metricName = 'EstimatedCharges';
+      const anomalyDetectorName = `${id}-${topic}-anomaly-detector`;
+      const anomalyDetectorParams: cw.CfnAnomalyDetectorProps = {
+        metricName,
+        namespace: 'AWS/Billing',
+        stat: billingAlert.metric?.statistic || 'Maximum',
+        configuration: {
+          metricTimeZone: 'UTC',
         },
-      ],
-      configuration: {
-        metricTimeZone: 'UTC',
-      },
-    };
+      };
+      new cw.CfnAnomalyDetector(this, anomalyDetectorName, anomalyDetectorParams);
 
-    new cw.CfnAnomalyDetector(this, anomalyDetectorName, anomalyDetectorParams);
-
-    const anomalyDetectorAlarmParams: CfnAlarmProps = {
-      alarmName: `${anomalyDetectorName}-alarm`,
-      actionsEnabled: true,
-      alarmActions: topicArns,
-      alarmDescription:
-        'Anomaly detection is the process of identifying unexpected items or events in data sets, which differ from the normal',
-      evaluationPeriods: 1,
-      comparisonOperator: 'GreaterThanUpperThreshold',
-      thresholdMetricId: 'ad1',
-      metrics: [
-        {
-          expression: 'ANOMALY_DETECTION_BAND(m1, 1)',
-          id: 'ad1',
-        },
-        {
-          metricStat: {
-            metric: {
-              metricName: anomalyDetectorParams.metricName,
-              namespace: anomalyDetectorParams.namespace,
-              dimensions: anomalyDetectorParams.dimensions,
-            },
-            stat: anomalyDetectorParams.stat,
-            period: 21600, // 6 hours
+      const alarmName = `${anomalyDetectorName}-${anomalyDetectorParams.metricName}`;
+      const anomalyDetectorAlarmParams: cw.CfnAlarmProps = {
+        alarmName,
+        actionsEnabled: true,
+        ...conf,
+        alarmActions: [topicArn],
+        okActions: billingAlert.autoResolve ? [topicArn] : [],
+        thresholdMetricId: 'ad1',
+        treatMissingData: getTreatMissingData(conf?.treatMissingData),
+        comparisonOperator: getComparisonOperator(conf?.comparisonOperator),
+        metrics: [
+          {
+            expression: 'ANOMALY_DETECTION_BAND(m1, 1)',
+            id: 'ad1',
           },
-          id: 'm1',
-        },
-      ],
-    };
-
-    new cw.CfnAlarm(this, `${anomalyDetectorName}-alarm`, anomalyDetectorAlarmParams);
+          {
+            metricStat: {
+              metric: {
+                ...anomalyDetectorParams,
+                dimensions: [
+                  {
+                    name: 'Currency',
+                    value: 'USD',
+                  },
+                ],
+              },
+              stat: anomalyDetectorParams.stat,
+              period: getDuration(billingAlert.metric?.period).toSeconds(),
+            },
+            id: 'm1',
+          },
+        ],
+      };
+      new cw.CfnAlarm(this, `${anomalyDetectorName}-alarm`, anomalyDetectorAlarmParams);
+    }
   }
 }
 

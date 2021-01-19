@@ -179,9 +179,15 @@ export interface ConfigCustomSNS {
   slackWebhook?: string;
 }
 
-export interface ConfigCustomBillingAlert {
+export interface BillingAlertAlarmOptions extends AlarmOptions {
+  budgetLimit: number;
+}
+
+export interface ConfigCustomBillingAlert<T = BillingAlertAlarmOptions, K = MetricOptions> {
   enabled: boolean;
-  limit: number;
+  autoResolve?: boolean;
+  alarm?: TopicMap<T>;
+  metric?: K;
 }
 
 export interface ConfigCustom {
