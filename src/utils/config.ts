@@ -179,9 +179,21 @@ export interface ConfigCustomSNS {
   slackWebhook?: string;
 }
 
+export interface BillingAlertAlarmOptions extends AlarmOptions {
+  budgetLimit: number;
+}
+
+export interface ConfigCustomBillingAlert<T = BillingAlertAlarmOptions, K = MetricOptions> {
+  enabled: boolean;
+  autoResolve?: boolean;
+  alarm?: TopicMap<T>;
+  metric?: K;
+}
+
 export interface ConfigCustom {
   default: ConfigCustomDefaults;
   snsTopic: TopicMap<ConfigCustomSNS>;
+  billingAlert: ConfigCustomBillingAlert;
 }
 
 export interface Config {
@@ -225,6 +237,10 @@ export function loadConfig(configPath: string): void {
  */
 export function configGetSNSTopics(): TopicMap<ConfigCustomSNS> | undefined {
   return configFile?.custom?.snsTopic;
+}
+
+export function configGetBillingAlert(): ConfigCustomBillingAlert | undefined {
+  return configFile?.custom?.billingAlert;
 }
 
 export enum ConfigLocalType {

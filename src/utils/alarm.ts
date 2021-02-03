@@ -22,6 +22,12 @@ export function getComparisonOperator(str?: string): cw.ComparisonOperator {
     case '<=':
     case 'lte':
       return cw.ComparisonOperator.LESS_THAN_OR_EQUAL_TO_THRESHOLD;
+    case 'GREATER_THAN_UPPER_THRESHOLD':
+      return cw.ComparisonOperator.GREATER_THAN_UPPER_THRESHOLD;
+    case 'LESS_THAN_LOWER_OR_GREATER_THAN_UPPER_THRESHOLD':
+      return cw.ComparisonOperator.LESS_THAN_LOWER_OR_GREATER_THAN_UPPER_THRESHOLD;
+    case 'LESS_THAN_LOWER_THRESHOLD':
+      return cw.ComparisonOperator.LESS_THAN_LOWER_THRESHOLD;
     default:
       return cw.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD;
   }
