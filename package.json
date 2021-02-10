@@ -20,7 +20,7 @@
   "scripts": {
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --ext ts --fix",
-    "test": "ava",
+    "test": "ava --verbose --timeout=2m",
     "build": "tsc --build ./tsconfig.json",
     "docs": "typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "tsc --watch",
