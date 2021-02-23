@@ -39,7 +39,7 @@ export class MonitoringStack extends cdk.Stack {
   /**
    * Setup lambda monitoring
    */
-  public addDefaultLambdaMonitoring(): NestedLambdaAlarmsStack[] {
+  public addDefaultLambdaMonitoring(): Promise<NestedLambdaAlarmsStack[]> {
     return createLambdaMonitoring(this, this.snsStack);
   }
 

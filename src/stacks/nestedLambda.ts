@@ -4,7 +4,8 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
+import { getFilledChunks } from '../utils/chunks';
+import { getDeployedResourcesToMonitor } from '../utils/cloudfront';
 
 export const lambdaMetrics = [
   'Invocations',
@@ -53,28 +54,36 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 }
 
 // Setup lambda alarms
-export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLambdaAlarmsStack[] {
+export async function createLambdaMonitoring(
+  stack: cdk.Stack,
+  snsStack: NestedSNSStack,
+): Promise<NestedLambdaAlarmsStack[]> {
   const lambdas = config.configGetAllEnabled(localType, lambdaMetrics);
   const lambdaKeys: string[] = Object.keys(lambdas);
+
+  const alarmsStackName = 'lambdaAlarms';
+  const nestedStackNamePrefix = `${stack.stackName}-${alarmsStackName}`;
+
+  const deployedResourcesToMonitor = await getDeployedResourcesToMonitor(lambdaKeys, nestedStackNamePrefix);
+  const chunks = getFilledChunks(deployedResourcesToMonitor, lambdaKeys);
 
   // Nothing to create
   if (lambdaKeys.length === 0) {
     return [];
   }
 
-  // Split more than 30 lambdas to multiple stacks
-  if (lambdaKeys.length > 30) {
-    return chunk(lambdaKeys, 30).map((lambdaKeys, index) => {
-      const stackLambdas = config.configGetSelected(localType, lambdaKeys);
-      return new NestedLambdaAlarmsStack(
-        stack,
-        stack.stackName + '-lambda-alarms-' + (index + 1),
-        snsStack,
-        stackLambdas,
-      );
-    });
-  }
+  return chunks
+    .map(
+      (chunk: string[], index): NestedLambdaAlarmsStack => {
+        const stackLambdas = config.configGetSelected(localType, chunk);
 
-  // Create single stack
-  return [new NestedLambdaAlarmsStack(stack, stack.stackName + '-lambda-alarms', snsStack, lambdas)];
+        if (chunk.length === 0) {
+          // @ts-ignore
+          return null;
+        }
+
+        return new NestedLambdaAlarmsStack(stack, `${alarmsStackName}${index + 1}`, snsStack, stackLambdas);
+      },
+    )
+    .filter(Boolean);
 }
