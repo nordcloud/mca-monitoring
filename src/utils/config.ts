@@ -493,7 +493,6 @@ export function calculateResources<T extends ConfigMetricAlarms = ConfigMetricAl
   addPerResource = 0,
 ): { [key: string]: [number, T] } {
   const enabled = configGetAllEnabled<T>(confType, allowedMetrics);
-  const metricCount = 1;
 
   const acc: { [key: string]: [number, T] } = {};
   for (const [key, metrics] of Object.entries(enabled)) {
@@ -501,7 +500,7 @@ export function calculateResources<T extends ConfigMetricAlarms = ConfigMetricAl
       const [currentCount, currentLocals] = acc[key] || [0, {}]
 
       const alarmCount = Object.values(local.alarm || {}).length;
-      acc[key] = [currentCount + alarmCount + metricCount + addPerResource, {
+      acc[key] = [currentCount + alarmCount + addPerResource, {
         ...currentLocals,
         [metric]: local
       }];
