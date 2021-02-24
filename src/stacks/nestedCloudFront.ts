@@ -4,7 +4,6 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
 
 export const cloudFrontMetrics = [
   '4XXErrorRate',
@@ -52,24 +51,12 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
 }
 
 export function createCloudFrontAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedCloudFrontAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, cloudFrontMetrics);
-  const keys = Object.keys(clusters);
-
-  if (keys.length === 0) {
-    return [];
-  }
-
-  if (keys.length > 30) {
-    return chunk(keys, 30).map((keys, index) => {
-      const clusters = config.configGetSelected(localType, keys);
-      return new NestedCloudFrontAlarmsStack(
-        stack,
-        stack.stackName + '-cloudfront-alarms-' + (index + 1),
-        snsStack,
-        clusters,
-      );
-    });
-  }
-
-  return [new NestedCloudFrontAlarmsStack(stack, stack.stackName + '-cloudfront-alarms', snsStack, clusters)];
+  return config.chunkByStackLimit(localType, cloudFrontMetrics).map((stackDistributions, index) => {
+    return new NestedCloudFrontAlarmsStack(
+      stack,
+      stack.stackName + '-cloudfront-alarms-' + (index + 1),
+      snsStack,
+      stackDistributions,
+    );
+  });
 }

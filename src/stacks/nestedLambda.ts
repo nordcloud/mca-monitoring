@@ -4,7 +4,6 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
 
 export const lambdaMetrics = [
   'Invocations',
@@ -54,27 +53,12 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 
 // Setup lambda alarms
 export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLambdaAlarmsStack[] {
-  const lambdas = config.configGetAllEnabled(localType, lambdaMetrics);
-  const lambdaKeys: string[] = Object.keys(lambdas);
-
-  // Nothing to create
-  if (lambdaKeys.length === 0) {
-    return [];
-  }
-
-  // Split more than 30 lambdas to multiple stacks
-  if (lambdaKeys.length > 30) {
-    return chunk(lambdaKeys, 30).map((lambdaKeys, index) => {
-      const stackLambdas = config.configGetSelected(localType, lambdaKeys);
-      return new NestedLambdaAlarmsStack(
-        stack,
-        stack.stackName + '-lambda-alarms-' + (index + 1),
-        snsStack,
-        stackLambdas,
-      );
-    });
-  }
-
-  // Create single stack
-  return [new NestedLambdaAlarmsStack(stack, stack.stackName + '-lambda-alarms', snsStack, lambdas)];
+  return config.chunkByStackLimit(localType, lambdaMetrics).map((stackLambdas, index) => {
+    return new NestedLambdaAlarmsStack(
+      stack,
+      stack.stackName + '-lambda-alarms-' + (index + 1),
+      snsStack,
+      stackLambdas,
+    );
+  });
 }

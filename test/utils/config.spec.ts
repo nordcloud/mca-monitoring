@@ -189,3 +189,15 @@ test('find only enabled lambdas', t => {
   const enabled = config.configGetAllEnabled(config.ConfigLocalType.Lambda, lambdaMetrics);
   t.is(Object.keys(enabled).length, 1);
 });
+
+test('calculate resources', t => {
+  const res = config.calculateResources(config.ConfigLocalType.Lambda, lambdaMetrics);
+  t.is(res['lambda-1'][0], 2);
+  t.not(res['lambda-1'][1]['Errors'], undefined);
+});
+
+test('chuck by stack limit', t => {
+  const res = config.chunkByStackLimit(config.ConfigLocalType.Lambda, lambdaMetrics);
+  t.is(res.length, 1);
+  t.not(res[0]['lambda-1'], undefined);
+});
