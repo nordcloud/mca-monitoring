@@ -192,7 +192,7 @@ test('find only enabled lambdas', t => {
 
 test('calculate resources', t => {
   const res = config.calculateResources(config.ConfigLocalType.Lambda, lambdaMetrics);
-  t.is(res['lambda-1'][0], 2);
+  t.is(res['lambda-1'][0], 1);
   t.not(res['lambda-1'][1]['Errors'], undefined);
 });
 
