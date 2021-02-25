@@ -462,7 +462,7 @@ export function configGetAllEnabled<T extends ConfigMetricAlarms = ConfigMetricA
         [key]: {
           ...local,
           alarms: Object.entries(local.alarm || {}).reduce((acc, [topic, alarm]) => {
-            if ((local.enabled === false && alarm.enabled === true) || alarm.enabled !== false) {
+            if ((local.enabled === false && alarm.enabled === true) || (local.enabled !== false && alarm.enabled !== false)) {
               return {
                 ...acc,
                 [topic]: alarm,
