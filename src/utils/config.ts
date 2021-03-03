@@ -487,7 +487,7 @@ export function configGetAllEnabled<T extends ConfigMetricAlarms = ConfigMetricA
 /**
  * Calculate how many resources each metric alarm (example lambda) takes
  */
-export function calculateResources<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+export function getResourceCountMap<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
   confType: ConfigLocalType,
   allowedMetrics?: string[],
   addPerResource = 0,
@@ -517,15 +517,20 @@ export function chunkByStackLimit<T extends ConfigMetricAlarms = ConfigMetricAla
   confType: ConfigLocalType,
   allowedMetrics?: string[],
   addedPerResource = 0,
+  versionReportingEnabled = true,
 ): ConfigLocals<T>[] {
-  // Calculate before chunking
-  const results = calculateResources<T>(confType, allowedMetrics, addedPerResource);
+  // Convert resource to counted resource map
+  const resourceCountMap = getResourceCountMap<T>(confType, allowedMetrics, addedPerResource);
+
+  // If version reporting is enabled limit the max count by one
+  // as there is now CDKMetadata resource on every stack
+  const maxResourceCount = versionReportingEnabled ? 499 : 500;
 
   const acc: ConfigLocals<T>[] = []
   let currentCount = 0;
   let index = 0;
-  for (const [key, [count, metrics]] of Object.entries(results)) {
-    if ((currentCount + count) > 500) {
+  for (const [key, [count, metrics]] of Object.entries(resourceCountMap)) {
+    if ((currentCount + count) > maxResourceCount) {
         // Move to next chunk and reset current count
         index++;
         currentCount = count;

@@ -190,8 +190,8 @@ test('find only enabled lambdas', t => {
   t.is(Object.keys(enabled).length, 1);
 });
 
-test('calculate resources', t => {
-  const res = config.calculateResources(config.ConfigLocalType.Lambda, lambdaMetrics);
+test('get resource count map', t => {
+  const res = config.getResourceCountMap(config.ConfigLocalType.Lambda, lambdaMetrics);
   t.is(res['lambda-1'][0], 1);
   t.not(res['lambda-1'][1]['Errors'], undefined);
 });

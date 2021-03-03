@@ -43,8 +43,8 @@ export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createApiGatewayAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedApiGatewayAlarmsStack[] {
-  return config.chunkByStackLimit(localType, apiGatewayMetrics).map((stackGateways, index) => {
+export function createApiGatewayAlarms(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedApiGatewayAlarmsStack[] {
+  return config.chunkByStackLimit(localType, apiGatewayMetrics, 0, versionReportingEnabled).map((stackGateways, index) => {
     return new NestedApiGatewayAlarmsStack(
       stack,
       stack.stackName + '-api-gateway-alarms-' + (index + 1),

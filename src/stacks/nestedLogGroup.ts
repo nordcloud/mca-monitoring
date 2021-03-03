@@ -117,8 +117,9 @@ export function createLogGroupMonitoring(
   stack: cdk.Stack,
   snsStack: NestedSNSStack,
   props?: LogGroupsProps,
+  versionReportingEnabled = true
 ): NestedLogGroupAlarmsStack[] {
-  return config.chunkByStackLimit(localType, undefined, 1).map((stackLogGroups, index) => {
+  return config.chunkByStackLimit(localType, undefined, 1, versionReportingEnabled).map((stackLogGroups, index) => {
     return new NestedLogGroupAlarmsStack(
       stack,
       stack.stackName + '-log-group-alarms-' + (index + 1),

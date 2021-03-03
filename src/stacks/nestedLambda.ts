@@ -52,8 +52,8 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 }
 
 // Setup lambda alarms
-export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedLambdaAlarmsStack[] {
-  return config.chunkByStackLimit(localType, lambdaMetrics).map((stackLambdas, index) => {
+export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedLambdaAlarmsStack[] {
+  return config.chunkByStackLimit(localType, lambdaMetrics, 0, versionReportingEnabled).map((stackLambdas, index) => {
     return new NestedLambdaAlarmsStack(
       stack,
       stack.stackName + '-lambda-alarms-' + (index + 1),

@@ -41,8 +41,8 @@ export class NestedClusterAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createClusterAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedClusterAlarmsStack[] {
-  return config.chunkByStackLimit(localType, clusterMetrics).map((stackClusters, index) => {
+export function createClusterAlarms(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedClusterAlarmsStack[] {
+  return config.chunkByStackLimit(localType, clusterMetrics, 0, versionReportingEnabled).map((stackClusters, index) => {
     return new NestedClusterAlarmsStack(
       stack,
       stack.stackName + '-cluster-alarms-' + (index + 1),

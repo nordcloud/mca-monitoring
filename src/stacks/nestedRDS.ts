@@ -64,8 +64,8 @@ export class NestedRDSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup rds alarms
-export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedRDSAlarmsStack[] {
-  return config.chunkByStackLimit(localType, rdsMetrics).map((stackInstances, index) => {
+export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedRDSAlarmsStack[] {
+  return config.chunkByStackLimit(localType, rdsMetrics, 0, versionReportingEnabled).map((stackInstances, index) => {
     return new NestedRDSAlarmsStack(
       stack,
       stack.stackName + '-rds-instance-alarms-' + (index + 1),

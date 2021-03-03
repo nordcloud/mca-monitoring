@@ -60,8 +60,8 @@ export class NestedTableAlarmsStack extends BaseNestedStack {
 }
 
 // Setup table alarms
-export function createDynamoDBMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedTableAlarmsStack[] {
-  return config.chunkByStackLimit(localType, tableMetrics).map((stackTables, index) => {
+export function createDynamoDBMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedTableAlarmsStack[] {
+  return config.chunkByStackLimit(localType, tableMetrics, 0, versionReportingEnabled).map((stackTables, index) => {
     return new NestedTableAlarmsStack(
       stack,
       stack.stackName + '-table-alarms-' + (index + 1),

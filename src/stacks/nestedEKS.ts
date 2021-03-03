@@ -64,8 +64,8 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup eks alarms
-export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedEKSAlarmsStack[] {
-  return config.chunkByStackLimit(localType, eksMetrics).map((stackClusters, index) => {
+export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
+  return config.chunkByStackLimit(localType, eksMetrics, 0, versionReportingEnabled).map((stackClusters, index) => {
     return new NestedEKSAlarmsStack(
       stack,
       stack.stackName + '-eks-cluster-alarms-' + (index + 1),

@@ -50,8 +50,8 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createCloudFrontAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedCloudFrontAlarmsStack[] {
-  return config.chunkByStackLimit(localType, cloudFrontMetrics).map((stackDistributions, index) => {
+export function createCloudFrontAlarms(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedCloudFrontAlarmsStack[] {
+  return config.chunkByStackLimit(localType, cloudFrontMetrics, 0, versionReportingEnabled).map((stackDistributions, index) => {
     return new NestedCloudFrontAlarmsStack(
       stack,
       stack.stackName + '-cloudfront-alarms-' + (index + 1),
