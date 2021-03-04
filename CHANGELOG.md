@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/nordcloud/mca-monitoring/compare/v0.1.3...v0.2.0) (2021-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* New chunking is not bacwards compatible
+
+With the chunking changes the way substacks are created is
+changed. This means to deploy this version of monitoring
+old monitoring stack will need to be removed first
+
+### Features
+
+* [MCA-1028] Rework the stack splitting functionality ([#9](https://github.com/nordcloud/mca-monitoring/issues/9)) ([2d1fd72](https://github.com/nordcloud/mca-monitoring/commit/2d1fd7203f5b202e1073af7291fab41e2ee53383))
+
 ### [0.1.3](https://github.com/nordcloud/mca-monitoring/compare/v0.1.2...v0.1.3) (2021-01-08)
 
 
