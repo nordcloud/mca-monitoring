@@ -4,7 +4,6 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
 
 // https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html
 export const eksMetrics = [
@@ -65,28 +64,13 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup eks alarms
-export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedEKSAlarmsStack[] {
-  const clusters = config.configGetAllEnabled(localType, eksMetrics);
-  const clusterKeys: string[] = Object.keys(clusters);
-
-  // Nothing to create
-  if (clusterKeys.length === 0) {
-    return [];
-  }
-
-  // Split over 8 clusters to multiple stacks
-  if (clusterKeys.length > 8) {
-    return chunk(clusterKeys, 8).map((keys, index) => {
-      const stackClusters = config.configGetSelected(localType, keys);
-      return new NestedEKSAlarmsStack(
-        stack,
-        stack.stackName + '-eks-cluster-alarms-' + (index + 1),
-        snsStack,
-        stackClusters,
-      );
-    });
-  }
-
-  // Create single stack
-  return [new NestedEKSAlarmsStack(stack, stack.stackName + '-eks-cluster-alarms', snsStack, clusters)];
+export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
+  return config.chunkByStackLimit(localType, eksMetrics, 0, versionReportingEnabled).map((stackClusters, index) => {
+    return new NestedEKSAlarmsStack(
+      stack,
+      stack.stackName + '-eks-cluster-alarms-' + (index + 1),
+      snsStack,
+      stackClusters,
+    );
+  });
 }

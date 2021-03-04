@@ -14,9 +14,11 @@ import { createBillingAlertStack, NestedBillingAlertStack } from './nestedBillin
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
   private snsStack: NestedSNSStack;
+  private versionReportingEnabled = false;
 
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    this.versionReportingEnabled = this.node.tryGetContext('aws:cdk:version-reporting') === true;
 
     // Setup SNS topics and actions
     this.snsStack = createSNSStack(this);
@@ -40,14 +42,14 @@ export class MonitoringStack extends cdk.Stack {
    * Setup lambda monitoring
    */
   public addDefaultLambdaMonitoring(): NestedLambdaAlarmsStack[] {
-    return createLambdaMonitoring(this, this.snsStack);
+    return createLambdaMonitoring(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup dynamodb monitoring
    */
   public addDefaultDynamoDBMonitoring(): NestedTableAlarmsStack[] {
-    return createDynamoDBMonitoring(this, this.snsStack);
+    return createDynamoDBMonitoring(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
@@ -61,42 +63,42 @@ export class MonitoringStack extends cdk.Stack {
    * Setup cluster monitoring
    */
   public addDefaultClusterMonitoring(): NestedClusterAlarmsStack[] {
-    return createClusterAlarms(this, this.snsStack);
+    return createClusterAlarms(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup Api Gateway monitoring
    */
   public addDefaultApiGatewayMonitoring(): NestedApiGatewayAlarmsStack[] {
-    return createApiGatewayAlarms(this, this.snsStack);
+    return createApiGatewayAlarms(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup Cloudfront monitoring
    */
   public addDefaultCloudFrontMonitoring(): NestedCloudFrontAlarmsStack[] {
-    return createCloudFrontAlarms(this, this.snsStack);
+    return createCloudFrontAlarms(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup RDS monitoring
    */
   public addDefaultRDSMonitoring(): NestedRDSAlarmsStack[] {
-    return createRDSMonitoring(this, this.snsStack);
+    return createRDSMonitoring(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup EKS monitoring
    */
   public addDefaultEKSMonitoring(): NestedEKSAlarmsStack[] {
-    return createEKSMonitoring(this, this.snsStack);
+    return createEKSMonitoring(this, this.snsStack, this.versionReportingEnabled);
   }
 
   /**
    * Setup Log Group monitoring
    */
   public addDefaultLogGroupMonitoring(props?: LogGroupsProps): NestedLogGroupAlarmsStack[] {
-    return createLogGroupMonitoring(this, this.snsStack, props);
+    return createLogGroupMonitoring(this, this.snsStack, props, this.versionReportingEnabled);
   }
 }
 

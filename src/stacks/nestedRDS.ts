@@ -4,7 +4,6 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
 
 // From https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/MonitoringOverview.html
 export const rdsMetrics = [
@@ -65,28 +64,13 @@ export class NestedRDSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup rds alarms
-export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack): NestedRDSAlarmsStack[] {
-  const instances = config.configGetAllEnabled(localType, rdsMetrics);
-  const instanceKeys: string[] = Object.keys(instances);
-
-  // Nothing to create
-  if (instanceKeys.length === 0) {
-    return [];
-  }
-
-  // Split over 7 instances to multiple stacks
-  if (instanceKeys.length > 7) {
-    return chunk(instanceKeys, 7).map((keys, index) => {
-      const stackInstances = config.configGetSelected(localType, keys);
-      return new NestedRDSAlarmsStack(
-        stack,
-        stack.stackName + '-rds-instance-alarms-' + (index + 1),
-        snsStack,
-        stackInstances,
-      );
-    });
-  }
-
-  // Create single stack
-  return [new NestedRDSAlarmsStack(stack, stack.stackName + '-rds-instance-alarms', snsStack, instances)];
+export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedRDSAlarmsStack[] {
+  return config.chunkByStackLimit(localType, rdsMetrics, 0, versionReportingEnabled).map((stackInstances, index) => {
+    return new NestedRDSAlarmsStack(
+      stack,
+      stack.stackName + '-rds-instance-alarms-' + (index + 1),
+      snsStack,
+      stackInstances,
+    );
+  });
 }

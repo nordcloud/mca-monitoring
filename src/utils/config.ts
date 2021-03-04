@@ -439,34 +439,112 @@ export function configAutoResolve(
  */
 export function configGetAllEnabled<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
   confType: ConfigLocalType,
-  metrics: string[],
+  metrics?: string[],
 ): ConfigLocals<T> {
   const all = configGetAll(confType);
 
-  return Object.keys(all).reduce((acc, key) => {
-    const locals = all[key];
-
-    if (!locals) {
+  return Object.entries(all).reduce((acc, [key, allLocals]) => {
+    if (!allLocals) {
       return acc;
     }
 
-    const isEnabled = Object.keys(locals).find(key => {
-      if (!metrics.includes(key)) {
-        return false;
+    const locals = Object.entries(allLocals).reduce((acc, [key, local]) => {
+      if (metrics && !metrics.includes(key)) {
+        return acc;
       }
-      const local = locals[key];
-      if (local.enabled === false) {
-        return Object.values(local.alarm || {}).find(l => l.enabled === true) !== undefined;
-      }
-      return Object.values(local.alarm || {}).find(l => l.enabled !== false) !== undefined;
-    });
 
-    // Add only if at least one value is enabled
-    if (isEnabled) {
-      return { ...acc, [key]: locals };
-    }
+      if (!configIsEnabled(local)) {
+        return acc;
+      }
+
+      return {
+        ...acc,
+        [key]: {
+          ...local,
+          alarms: Object.entries(local.alarm || {}).reduce((acc, [topic, alarm]) => {
+            if ((local.enabled === false && alarm.enabled === true) || (local.enabled !== false && alarm.enabled !== false)) {
+              return {
+                ...acc,
+                [topic]: alarm,
+              };
+            }
+
+            return acc;
+          }, {} as TopicMap<AlarmOptions>),
+        }
+      }
+    }, {} as T);
 
     // Skip adding as none was enabled
-    return acc;
+    if (Object.keys(locals).length === 0) {
+      return acc;
+    }
+
+    return { ...acc, [key]: locals };
   }, {});
+}
+
+/**
+ * Calculate how many resources each metric alarm (example lambda) takes
+ */
+export function getResourceCountMap<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+  allowedMetrics?: string[],
+  addPerResource = 0,
+): { [key: string]: [number, T] } {
+  const enabled = configGetAllEnabled<T>(confType, allowedMetrics);
+
+  const acc: { [key: string]: [number, T] } = {};
+  for (const [key, metrics] of Object.entries(enabled)) {
+    for (const [metric, local] of Object.entries(metrics)) {
+      const [currentCount, currentLocals] = acc[key] || [0, {}]
+
+      const alarmCount = Object.values(local.alarm || {}).length;
+      acc[key] = [currentCount + alarmCount + addPerResource, {
+        ...currentLocals,
+        [metric]: local
+      }];
+    }
+  }
+
+  return acc;
+}
+
+/**
+ * Generate chunked array of the metric alarms
+ */
+export function chunkByStackLimit<T extends ConfigMetricAlarms = ConfigMetricAlarms>(
+  confType: ConfigLocalType,
+  allowedMetrics?: string[],
+  addedPerResource = 0,
+  versionReportingEnabled = true,
+): ConfigLocals<T>[] {
+  // Convert resource to counted resource map
+  const resourceCountMap = getResourceCountMap<T>(confType, allowedMetrics, addedPerResource);
+
+  // If version reporting is enabled limit the max count by one
+  // as there is now CDKMetadata resource on every stack
+  const maxResourceCount = versionReportingEnabled ? 499 : 500;
+
+  const acc: ConfigLocals<T>[] = []
+  let currentCount = 0;
+  let index = 0;
+  for (const [key, [count, metrics]] of Object.entries(resourceCountMap)) {
+    if ((currentCount + count) > maxResourceCount) {
+        // Move to next chunk and reset current count
+        index++;
+        currentCount = count;
+      } else {
+        // Increase current count
+        currentCount = currentCount + count;
+      }
+
+      if (!acc[index]) {
+        acc[index] = {};
+      }
+
+      acc[index][key] = metrics;
+  }
+
+  return acc;
 }

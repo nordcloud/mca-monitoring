@@ -6,7 +6,6 @@ import * as logs from '@aws-cdk/aws-logs';
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
 import * as config from '../utils/config';
-import { chunk } from '../utils/utils';
 import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
 import { getDuration, defaultConfigToNameSpace } from '../utils/metric';
 
@@ -118,33 +117,15 @@ export function createLogGroupMonitoring(
   stack: cdk.Stack,
   snsStack: NestedSNSStack,
   props?: LogGroupsProps,
+  versionReportingEnabled = true
 ): NestedLogGroupAlarmsStack[] {
-  const logGroups = config.configGetAll(localType);
-  const logGroupKeys: string[] = Object.keys(logGroups);
-
-  // Nothing to create
-  if (logGroupKeys.length === 0) {
-    return [];
-  }
-
-  // // Split over 30 log groups' resources to multiple stacks
-  if (logGroupKeys.length > 30) {
-    return chunk(logGroupKeys, 30).map((keys, index) => {
-      const stackLogGroups = config.configGetSelected(localType, keys);
-      return new NestedLogGroupAlarmsStack(
-        stack,
-        stack.stackName + '-log-group-alarms-' + (index + 1),
-        snsStack,
-        stackLogGroups,
-        { metricFilter: props?.metricFilter },
-      );
-    });
-  }
-
-  // Create single stack
-  return [
-    new NestedLogGroupAlarmsStack(stack, stack.stackName + '-log-group-alarms', snsStack, logGroups, {
-      metricFilter: props?.metricFilter,
-    }),
-  ];
+  return config.chunkByStackLimit(localType, undefined, 1, versionReportingEnabled).map((stackLogGroups, index) => {
+    return new NestedLogGroupAlarmsStack(
+      stack,
+      stack.stackName + '-log-group-alarms-' + (index + 1),
+      snsStack,
+      stackLogGroups,
+      props,
+    );
+  });
 }
