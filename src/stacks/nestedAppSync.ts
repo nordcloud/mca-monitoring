@@ -45,10 +45,13 @@ export class NestedAppSyncAlarmsStack extends BaseNestedStack {
 
     Object.keys(appSyncApis).forEach(appSyncApiId => {
       const appSyncApiConfig = appSyncApis[appSyncApiId];
+      const dimensions = {
+        GraphQLAPIId: appSyncApiId
+      };
 
       appSyncApiMetrics.forEach(metricName => {
         if (appSyncApiConfig[metricName]) {
-          this.setupAlarm(appSyncApiId, metricName, appSyncApiConfig[metricName]);
+          this.setupAlarm(appSyncApiId, metricName, appSyncApiConfig[metricName], dimensions);
         }
       })
     });
