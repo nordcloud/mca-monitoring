@@ -116,5 +116,7 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
       return 'AWS/EKS';
     case config.ConfigDefaultType.LogGroup:
       return 'Custom';
+    case config.ConfigDefaultType.AppSync:
+      return 'AWS/AppSync';
   }
 }

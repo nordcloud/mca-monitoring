@@ -169,6 +169,7 @@ export interface ConfigCustomDefaults {
   rds?: ConfigMetricAlarms;
   eks?: ConfigMetricAlarms;
   logGroup?: ConfigLogGroupAlarms;
+  appSyncApi?: ConfigMetricAlarms;
 }
 
 export interface ConfigCustomSNS {
@@ -207,6 +208,7 @@ export interface Config {
   rdsInstances?: ConfigLocals<ConfigMetricAlarms>;
   eksClusters?: ConfigLocals<ConfigMetricAlarms>;
   logGroups?: ConfigLocals<ConfigLogGroupAlarms>;
+  appSyncApis?: ConfigLocals<ConfigMetricAlarms>;
 }
 
 let configFile: Config | undefined;
@@ -252,6 +254,7 @@ export enum ConfigLocalType {
   RdsInstance = 'rdsInstances',
   EksCluster = 'eksClusters',
   LogGroup = 'logGroups',
+  AppSync = 'appSyncApis',
 }
 
 export enum ConfigDefaultType {
@@ -264,6 +267,7 @@ export enum ConfigDefaultType {
   RdsInstance = 'rds',
   EksCluster = 'eks',
   LogGroup = 'logGroup',
+  AppSync = 'appSyncApi'
 }
 
 /**
@@ -289,6 +293,8 @@ export function configLocalTypeToDefault(confType: ConfigLocalType): ConfigDefau
       return ConfigDefaultType.EksCluster;
     case ConfigLocalType.LogGroup:
       return ConfigDefaultType.LogGroup;
+    case ConfigLocalType.AppSync:
+      return ConfigDefaultType.AppSync;
     default:
       return ConfigDefaultType.LogGroup;
   }
@@ -317,6 +323,8 @@ export function configDefaultTypeToLocal(confType: ConfigDefaultType): ConfigLoc
       return ConfigLocalType.EksCluster;
     case ConfigDefaultType.LogGroup:
       return ConfigLocalType.LogGroup;
+    case ConfigDefaultType.AppSync:
+        return ConfigLocalType.AppSync;
     default:
       return ConfigLocalType.LogGroup;
   }
