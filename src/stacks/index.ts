@@ -7,4 +7,4 @@ export * from './nestedApiGateway';
 export * from './nestedRDS';
 export * from './nestedEKS';
 export * from './monitoring';
-export * from './nestedAppsync';
+export * from './nestedAppSync';

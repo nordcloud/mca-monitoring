@@ -10,7 +10,7 @@ import { createRDSMonitoring, NestedRDSAlarmsStack } from './nestedRDS';
 import { createEKSMonitoring, NestedEKSAlarmsStack } from './nestedEKS';
 import { createLogGroupMonitoring, NestedLogGroupAlarmsStack, LogGroupsProps } from './nestedLogGroup';
 import { createBillingAlertStack, NestedBillingAlertStack } from './nestedBillingAlert';
-import { createAppSyncMonitoring, NestedAppSyncAlarmsStack } from './nestedAppsync';
+import { createAppSyncMonitoring, NestedAppSyncAlarmsStack } from './nestedAppSync';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends cdk.Stack {
@@ -47,7 +47,7 @@ export class MonitoringStack extends cdk.Stack {
   }
 
   /**
-   * Setup appsync monitoring
+   * Setup AppSync monitoring
    */
   public addDefaultAppSyncMonitoring(): NestedAppSyncAlarmsStack[] {
     return createAppSyncMonitoring(this, this.snsStack, this.versionReportingEnabled);

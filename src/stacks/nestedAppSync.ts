@@ -38,20 +38,17 @@ export class NestedAppSyncAlarmsStack extends BaseNestedStack {
     scope: cdk.Construct,
     id: string,
     snsStack: NestedSNSStack,
-    appsyncApis: config.ConfigLocals<config.ConfigMetricAlarms>,
+    appSyncApis: config.ConfigLocals<config.ConfigMetricAlarms>,
     props?: cfn.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
-    Object.keys(appsyncApis).forEach(appSyncApiId => {
-      const appSyncApiConfig = appsyncApis[appSyncApiId];
-      const dimensions = {
-        GraphQLAPIId: appSyncApiId
-      };
+    Object.keys(appSyncApis).forEach(appSyncApiId => {
+      const appSyncApiConfig = appSyncApis[appSyncApiId];
 
       appSyncApiMetrics.forEach(metricName => {
         if (appSyncApiConfig[metricName]) {
-          this.setupAlarm(appSyncApiId, metricName, appSyncApiConfig[metricName], dimensions);
+          this.setupAlarm(appSyncApiId, metricName, appSyncApiConfig[metricName]);
         }
       })
     });
@@ -59,12 +56,12 @@ export class NestedAppSyncAlarmsStack extends BaseNestedStack {
 }
 
 export function createAppSyncMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedAppSyncAlarmsStack[] {
-  return config.chunkByStackLimit(localType, appSyncApiMetrics, 0, versionReportingEnabled).map((stackAppsyncs, index) => {
+  return config.chunkByStackLimit(localType, appSyncApiMetrics, 0, versionReportingEnabled).map((stackAppSyncs, index) => {
     return new NestedAppSyncAlarmsStack(
       stack,
       stack.stackName + '-appsync-alarms-' + (index + 1),
       snsStack,
-      stackAppsyncs
+      stackAppSyncs
     );
   });
 }
