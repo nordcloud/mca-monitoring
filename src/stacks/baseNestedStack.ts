@@ -62,7 +62,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     Object.keys(localConf?.alarm || {}).forEach(topic => {
       const conf = localConf?.alarm?.[topic];
       if (conf && conf.enabled !== false) {
-        const alarmName = `${localName}-${metricName}-${topic}`;
+        const alarmName = `alarm-${localName}-${metricName}-${topic}`;
         const alarm = metric.createAlarm(this, alarmName, {
           ...conf,
           treatMissingData: getTreatMissingData(conf?.treatMissingData),
