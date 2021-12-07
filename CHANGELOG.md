@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/nordcloud/mca-monitoring/compare/v0.2.1...v0.2.2) (2021-12-07)
+
+
+### Bug Fixes
+
+* MCA-1270 Update alarm name to deploy appsync alarms where ID starts with a number ([#20](https://github.com/nordcloud/mca-monitoring/issues/20)) ([b40009f](https://github.com/nordcloud/mca-monitoring/commit/b40009fb4ea9ffa7340ae1dd44bcb6f648c706da))
+
 ### [0.2.1](https://github.com/nordcloud/mca-monitoring/compare/v0.2.0...v0.2.1) (2021-11-26)
 
 ## [0.2.0](https://github.com/nordcloud/mca-monitoring/compare/v0.1.3...v0.2.0) (2021-03-04)
