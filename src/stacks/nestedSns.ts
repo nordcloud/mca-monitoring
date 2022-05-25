@@ -78,7 +78,9 @@ export class NestedSNSStack extends cfn.NestedStack {
         if (slackWebhook) {
           const handler = new nodejsLambda.NodejsFunction(this, `SnsToSlackHandler-${key}`, {
             runtime: lambda.Runtime.NODEJS_12_X,
-            esbuildVersion: 'v0',
+            bundling: {
+              esbuildVersion: 'v0',
+            },
             // is there a better way when referring to file?
             entry: 'node_modules/mca-monitoring/dist/lambda/index.js',
             handler: 'snsToSlackHandler',

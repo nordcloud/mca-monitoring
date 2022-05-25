@@ -109,7 +109,7 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
                   },
                 ],
               },
-              stat: anomalyDetectorParams.stat,
+              stat: anomalyDetectorParams.stat!,
               period: getDuration(billingAlert.metric?.period).toSeconds(),
             },
             id: 'm1',
