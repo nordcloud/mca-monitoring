@@ -65,7 +65,6 @@
     "eslint-plugin-import": "^2.26.0",
     "jest": "^25.5.4",
     "jest-config": "^25.5.4",
-    "lint-staged": "^8.2.1",
     "node-fetch": "^2.6.7",
     "semantic-release": "^17.4.7",
     "standard-version": "^9.5.0",
