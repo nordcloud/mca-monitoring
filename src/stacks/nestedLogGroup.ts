@@ -1,7 +1,9 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
-import * as logs from '@aws-cdk/aws-logs';
+import * as cdk from 'aws-cdk-lib';
+import { 
+  aws_cloudwatch as cw, 
+  aws_logs as logs 
+} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
@@ -16,13 +18,13 @@ export interface LogGroupsProps {
   metricFilter?: boolean;
 }
 
-export interface NestedLogGroupAlarmsStackProps extends cfn.NestedStackProps {
+export interface NestedLogGroupAlarmsStackProps extends cdk.NestedStackProps {
   metricFilter?: boolean;
 }
 
 export class NestedLogGroupAlarmsStack extends BaseNestedStack {
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     snsStack: NestedSNSStack,
     logGroups: config.ConfigLocals<config.ConfigLogGroupAlarms>,

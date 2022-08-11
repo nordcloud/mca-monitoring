@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
-import * as cw from '@aws-cdk/aws-cloudwatch';
+import * as cdk from 'aws-cdk-lib';
+import { aws_cloudwatch as cw } from 'aws-cdk-lib';
 
 import * as config from './config';
 

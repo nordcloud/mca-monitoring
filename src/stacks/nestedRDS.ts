@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
@@ -39,11 +39,11 @@ const localType = config.ConfigLocalType.RdsInstance;
 
 export class NestedRDSAlarmsStack extends BaseNestedStack {
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     snsStack: NestedSNSStack,
     instances: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cfn.NestedStackProps,
+    props?: cdk.NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 

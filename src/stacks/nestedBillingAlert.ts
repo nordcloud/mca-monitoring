@@ -1,7 +1,9 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
-import * as b from '@aws-cdk/aws-budgets';
+import * as cdk from 'aws-cdk-lib';
+import { 
+  aws_cloudwatch as cw, 
+  aws_budgets as b 
+} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import * as config from '../utils/config';
 
@@ -11,10 +13,10 @@ import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
 import { getDuration } from '../utils/metric';
 
 // Generate nested stack for billing alerts
-export class NestedBillingAlertStack extends cfn.NestedStack {
+export class NestedBillingAlertStack extends cdk.NestedStack {
   protected readonly snsStack: NestedSNSStack;
 
-  constructor(scope: cdk.Construct, id: string, snsStack: NestedSNSStack, props?: cfn.NestedStackProps) {
+  constructor(scope: Construct, id: string, snsStack: NestedSNSStack, props?: cdk.NestedStackProps) {
     super(scope, id, props);
 
     this.snsStack = snsStack;

@@ -34,20 +34,14 @@
   },
   "dependencies": {
     "deepmerge": "^4.2.2",
-    "js-yaml": "^3.14.1"
+    "js-yaml": "^3.14.1",
+    "aws-cdk-lib": "^2.0.0",
+    "@aws-cdk/aws-codestar-alpha": "2.0.0-alpha.1",
+    "constructs": "^10.0.0"
   },
   "devDependencies": {
-    "@aws-cdk/aws-budgets": "~1.157.0",
-    "@aws-cdk/aws-cloudformation": "~1.157.0",
-    "@aws-cdk/aws-cloudwatch": "~1.157.0",
-    "@aws-cdk/aws-cloudwatch-actions": "~1.157.0",
-    "@aws-cdk/aws-dynamodb": "~1.157.0",
-    "@aws-cdk/aws-lambda": "~1.157.0",
-    "@aws-cdk/aws-lambda-nodejs": "~1.157.0",
-    "@aws-cdk/aws-logs": "~1.157.0",
-    "@aws-cdk/aws-sns": "~1.157.0",
-    "@aws-cdk/aws-sns-subscriptions": "~1.157.0",
-    "@aws-cdk/core": "~1.157.0",
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
     "@commitlint/cli": "^9.1.2",
     "@commitlint/config-conventional": "^7.6.0",
     "@types/aws-lambda": "^8.10.97",
@@ -70,17 +64,8 @@
     "typescript": "^3.9.10"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-budgets": "~1.157.0",
-    "@aws-cdk/aws-cloudformation": "~1.157.0",
-    "@aws-cdk/aws-cloudwatch": "~1.157.0",
-    "@aws-cdk/aws-cloudwatch-actions": "~1.157.0",
-    "@aws-cdk/aws-dynamodb": "~1.157.0",
-    "@aws-cdk/aws-lambda": "~1.157.0",
-    "@aws-cdk/aws-lambda-nodejs": "~1.157.0",
-    "@aws-cdk/aws-logs": "~1.157.0",
-    "@aws-cdk/aws-sns": "~1.157.0",
-    "@aws-cdk/aws-sns-subscriptions": "~1.157.0",
-    "@aws-cdk/core": "~1.157.0",
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
     "esbuild": "^0.14.39",
     "node-fetch": "^2.6.7"
   },

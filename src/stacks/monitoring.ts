@@ -1,4 +1,5 @@
-import * as cdk from '@aws-cdk/core';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 import { createSNSStack, NestedSNSStack } from './nestedSns';
 import { createLambdaMonitoring, NestedLambdaAlarmsStack } from './nestedLambda';
 import { createDynamoDBMonitoring, NestedTableAlarmsStack } from './nestedTable';
@@ -17,7 +18,7 @@ export class MonitoringStack extends cdk.Stack {
   private snsStack: NestedSNSStack;
   private versionReportingEnabled = false;
 
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     this.versionReportingEnabled = this.node.tryGetContext('aws:cdk:version-reporting') === true;
 
@@ -113,14 +114,14 @@ export class MonitoringStack extends cdk.Stack {
 /**
  * Setup default CDK app
  */
-export function createApp(): cdk.Construct {
+export function createApp(): Construct {
   return new cdk.App();
 }
 
 /**
  * Generate monitoring stack
  */
-export function setupMonitoringStack(app: cdk.Construct, id: string, props?: cdk.StackProps): MonitoringStack {
+export function setupMonitoringStack(app: Construct, id: string, props?: cdk.StackProps): MonitoringStack {
   if (!props?.stackName) {
     props = {
       ...(props || {}),
