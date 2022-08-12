@@ -1,5 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
-import { aws_cloudwatch as cw } from 'aws-cdk-lib';
+import { NestedStackProps, NestedStack, aws_cloudwatch as cw } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 
@@ -12,7 +11,7 @@ export interface SetupAlarmOpts {
   aliases?: string[];
 }
 
-export default class BaseNestedStack extends cdk.NestedStack {
+export default class BaseNestedStack extends NestedStack {
   protected readonly snsStack: NestedSNSStack;
   protected readonly defaultType: config.ConfigDefaultType;
   protected readonly localType?: config.ConfigLocalType;
@@ -22,7 +21,7 @@ export default class BaseNestedStack extends cdk.NestedStack {
     id: string,
     snsStack: NestedSNSStack,
     defaultType: config.ConfigDefaultType,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, props);
 

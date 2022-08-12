@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -39,7 +39,7 @@ export class NestedAppSyncAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     appSyncApis: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -58,7 +58,7 @@ export class NestedAppSyncAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createAppSyncMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedAppSyncAlarmsStack[] {
+export function createAppSyncMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedAppSyncAlarmsStack[] {
   return config.chunkByStackLimit(localType, appSyncApiMetrics, 0, versionReportingEnabled).map((stackAppSyncs, index) => {
     return new NestedAppSyncAlarmsStack(
       stack,

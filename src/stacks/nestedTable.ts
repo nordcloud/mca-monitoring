@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack }from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -39,7 +39,7 @@ export class NestedTableAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     tables: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -60,7 +60,7 @@ export class NestedTableAlarmsStack extends BaseNestedStack {
 }
 
 // Setup table alarms
-export function createDynamoDBMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedTableAlarmsStack[] {
+export function createDynamoDBMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedTableAlarmsStack[] {
   return config.chunkByStackLimit(localType, tableMetrics, 0, versionReportingEnabled).map((stackTables, index) => {
     return new NestedTableAlarmsStack(
       stack,

@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -43,7 +43,7 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     clusters: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -64,7 +64,7 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup eks alarms
-export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
+export function createEKSMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
   return config.chunkByStackLimit(localType, eksMetrics, 0, versionReportingEnabled).map((stackClusters, index) => {
     return new NestedEKSAlarmsStack(
       stack,

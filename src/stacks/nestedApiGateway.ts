@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack }from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -24,7 +24,7 @@ export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     routes: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -43,7 +43,7 @@ export class NestedApiGatewayAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createApiGatewayAlarms(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedApiGatewayAlarmsStack[] {
+export function createApiGatewayAlarms(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedApiGatewayAlarmsStack[] {
   return config.chunkByStackLimit(localType, apiGatewayMetrics, 0, versionReportingEnabled).map((stackGateways, index) => {
     return new NestedApiGatewayAlarmsStack(
       stack,

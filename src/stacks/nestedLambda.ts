@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -31,7 +31,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     lambdas: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -52,7 +52,7 @@ export class NestedLambdaAlarmsStack extends BaseNestedStack {
 }
 
 // Setup lambda alarms
-export function createLambdaMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedLambdaAlarmsStack[] {
+export function createLambdaMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedLambdaAlarmsStack[] {
   return config.chunkByStackLimit(localType, lambdaMetrics, 0, versionReportingEnabled).map((stackLambdas, index) => {
     return new NestedLambdaAlarmsStack(
       stack,

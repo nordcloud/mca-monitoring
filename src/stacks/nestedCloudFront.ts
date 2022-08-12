@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { NestedStackProps, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
@@ -31,7 +31,7 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
     id: string,
     snsStack: NestedSNSStack,
     distributions: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cdk.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -50,7 +50,7 @@ export class NestedCloudFrontAlarmsStack extends BaseNestedStack {
   }
 }
 
-export function createCloudFrontAlarms(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedCloudFrontAlarmsStack[] {
+export function createCloudFrontAlarms(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedCloudFrontAlarmsStack[] {
   return config.chunkByStackLimit(localType, cloudFrontMetrics, 0, versionReportingEnabled).map((stackDistributions, index) => {
     return new NestedCloudFrontAlarmsStack(
       stack,

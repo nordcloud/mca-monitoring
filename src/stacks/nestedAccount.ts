@@ -1,5 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
-import { aws_cloudwatch as cw } from 'aws-cdk-lib';
+import { NestedStackProps, NestedStack, Stack, aws_cloudwatch as cw } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 
 import { NestedSNSStack } from './nestedSns';
@@ -7,10 +6,10 @@ import * as config from '../utils/config';
 import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
 import { getUnit, getDuration, defaultConfigToNameSpace } from '../utils/metric';
 
-export class NestedAccountAlarmsStack extends cdk.NestedStack {
+export class NestedAccountAlarmsStack extends NestedStack {
   private snsStack: NestedSNSStack;
 
-  constructor(scope: Construct, id: string, snsStack: NestedSNSStack, props?: cdk.NestedStackProps) {
+  constructor(scope: Construct, id: string, snsStack: NestedSNSStack, props?: NestedStackProps) {
     super(scope, id, props);
 
     this.snsStack = snsStack;
@@ -71,6 +70,6 @@ export class NestedAccountAlarmsStack extends cdk.NestedStack {
   }
 }
 
-export function createAccountAlarms(stack: cdk.Stack, snsStack: NestedSNSStack): NestedAccountAlarmsStack[] {
+export function createAccountAlarms(stack: Stack, snsStack: NestedSNSStack): NestedAccountAlarmsStack[] {
   return [new NestedAccountAlarmsStack(stack, stack.stackName + '-account-alarms', snsStack)];
 }
