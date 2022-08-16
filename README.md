@@ -3,9 +3,12 @@
 Separate library for MCA monitoring generated with MCA CLI.
 
 ## Developing
+It is important to use at least v14.15 for aws-cdk v2 to work.
 
-1. `npm install`
-2. `npm run start`
+1. `nvm use`
+2. `npm install`
+3. `npm run start`
+
 
 Commits should use [Conventional Commits format](https://www.conventionalcommits.org/) for changelog generation and versioning.
 
