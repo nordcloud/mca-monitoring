@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
-import * as cw from '@aws-cdk/aws-cloudwatch';
+import { Duration }from 'aws-cdk-lib';
+import { aws_cloudwatch as cw } from 'aws-cdk-lib';
 
 import * as config from './config';
 
@@ -66,30 +66,30 @@ export function getUnit(str?: string): cw.Unit | undefined {
   }
 }
 
-export function getDuration(conf?: config.MetricDuration): cdk.Duration {
-  const defaultDuration = cdk.Duration.minutes(5);
+export function getDuration(conf?: config.MetricDuration): Duration {
+  const defaultDuration = Duration.minutes(5);
 
   if (!conf) {
     return defaultDuration;
   }
 
   if (conf.milliseconds) {
-    return cdk.Duration.millis(conf.milliseconds);
+    return Duration.millis(conf.milliseconds);
   }
   if (conf.seconds) {
-    return cdk.Duration.seconds(conf.seconds);
+    return Duration.seconds(conf.seconds);
   }
   if (conf.minutes) {
-    return cdk.Duration.minutes(conf.minutes);
+    return Duration.minutes(conf.minutes);
   }
   if (conf.hours) {
-    return cdk.Duration.hours(conf.hours);
+    return Duration.hours(conf.hours);
   }
   if (conf.days) {
-    return cdk.Duration.days(conf.days);
+    return Duration.days(conf.days);
   }
   if (conf.iso) {
-    return cdk.Duration.parse(conf.iso);
+    return Duration.parse(conf.iso);
   }
 
   // Default value

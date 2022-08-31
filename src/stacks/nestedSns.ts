@@ -1,20 +1,17 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as sns from '@aws-cdk/aws-sns';
-import * as snsSub from '@aws-cdk/aws-sns-subscriptions';
-import * as cw from '@aws-cdk/aws-cloudwatch';
-import * as cwa from '@aws-cdk/aws-cloudwatch-actions';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as nodejsLambda from '@aws-cdk/aws-lambda-nodejs';
+import { NestedStackProps, NestedStack, Stack, aws_sns as sns, aws_sns_subscriptions as snsSub, 
+  aws_cloudwatch as cw, aws_cloudwatch_actions as cwa, aws_lambda as lambda, 
+  aws_lambda_nodejs as nodejsLambda } from 'aws-cdk-lib';
+
+import { Construct } from 'constructs';
 
 import * as config from '../utils/config';
 
 // Generate nested stack for sns topics
-export class NestedSNSStack extends cfn.NestedStack {
+export class NestedSNSStack extends NestedStack {
   private topics: config.TopicMap<sns.ITopic> = {};
   private topicActions: config.TopicMap<cwa.SnsAction> = {};
 
-  constructor(scope: cdk.Construct, id: string, props?: cfn.NestedStackProps) {
+  constructor(scope: Construct, id: string, props?: NestedStackProps) {
     super(scope, id, props);
 
     const topics = config.configGetSNSTopics() || {};
@@ -95,7 +92,7 @@ export class NestedSNSStack extends cfn.NestedStack {
   }
 }
 
-export function createSNSStack(stack: cdk.Stack): NestedSNSStack {
+export function createSNSStack(stack: Stack): NestedSNSStack {
   if (!config.configGetSNSTopics()) {
     throw new Error('No SNS topics defined in the config');
   }

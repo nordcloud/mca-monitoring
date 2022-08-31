@@ -1,6 +1,6 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
+import { NestedStackProps, NestedStack, aws_cloudwatch as cw } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+
 
 import * as config from '../utils/config';
 import { NestedSNSStack } from './nestedSns';
@@ -11,17 +11,17 @@ export interface SetupAlarmOpts {
   aliases?: string[];
 }
 
-export default class BaseNestedStack extends cfn.NestedStack {
+export default class BaseNestedStack extends NestedStack {
   protected readonly snsStack: NestedSNSStack;
   protected readonly defaultType: config.ConfigDefaultType;
   protected readonly localType?: config.ConfigLocalType;
 
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     snsStack: NestedSNSStack,
     defaultType: config.ConfigDefaultType,
-    props?: cfn.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, props);
 
@@ -34,7 +34,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
     localName: string,
     metricName: string,
     localConf: config.ConfigMetricAlarm,
-    dimensions?: object,
+    dimensionsMap?: cw.DimensionsMap,
   ): void {
     if (!config.configIsEnabled(localConf)) {
       return;
@@ -55,7 +55,7 @@ export default class BaseNestedStack extends cfn.NestedStack {
       unit: getUnit(localConf.metric?.unit),
       period: getDuration(localConf.metric?.period),
       metricName,
-      dimensions,
+      dimensionsMap,
       namespace: defaultConfigToNameSpace(this.defaultType),
     });
 

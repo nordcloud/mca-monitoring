@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
+import { NestedStackProps, Stack} from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
@@ -39,11 +39,11 @@ const localType = config.ConfigLocalType.EksCluster;
 
 export class NestedEKSAlarmsStack extends BaseNestedStack {
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     snsStack: NestedSNSStack,
     clusters: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cfn.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -64,7 +64,7 @@ export class NestedEKSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup eks alarms
-export function createEKSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
+export function createEKSMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedEKSAlarmsStack[] {
   return config.chunkByStackLimit(localType, eksMetrics, 0, versionReportingEnabled).map((stackClusters, index) => {
     return new NestedEKSAlarmsStack(
       stack,

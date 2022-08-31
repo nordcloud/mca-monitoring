@@ -1,5 +1,5 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
+import { NestedStackProps, Stack }from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import BaseNestedStack from './baseNestedStack';
 import { NestedSNSStack } from './nestedSns';
@@ -39,11 +39,11 @@ const localType = config.ConfigLocalType.RdsInstance;
 
 export class NestedRDSAlarmsStack extends BaseNestedStack {
   constructor(
-    scope: cdk.Construct,
+    scope: Construct,
     id: string,
     snsStack: NestedSNSStack,
     instances: config.ConfigLocals<config.ConfigMetricAlarms>,
-    props?: cfn.NestedStackProps,
+    props?: NestedStackProps,
   ) {
     super(scope, id, snsStack, defaultType, props);
 
@@ -64,7 +64,7 @@ export class NestedRDSAlarmsStack extends BaseNestedStack {
 }
 
 // Setup rds alarms
-export function createRDSMonitoring(stack: cdk.Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedRDSAlarmsStack[] {
+export function createRDSMonitoring(stack: Stack, snsStack: NestedSNSStack, versionReportingEnabled = true): NestedRDSAlarmsStack[] {
   return config.chunkByStackLimit(localType, rdsMetrics, 0, versionReportingEnabled).map((stackInstances, index) => {
     return new NestedRDSAlarmsStack(
       stack,

@@ -1,4 +1,4 @@
-import * as cw from '@aws-cdk/aws-cloudwatch';
+import { aws_cloudwatch as cw } from 'aws-cdk-lib';
 
 export function getComparisonOperator(str?: string): cw.ComparisonOperator {
   if (!str) {

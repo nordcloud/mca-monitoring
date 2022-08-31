@@ -1,7 +1,6 @@
-import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as cw from '@aws-cdk/aws-cloudwatch';
-import * as b from '@aws-cdk/aws-budgets';
+import {  } from 'aws-cdk-lib';
+import { NestedStack, NestedStackProps, Token, Stack, aws_cloudwatch as cw, aws_budgets as b } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
 
 import * as config from '../utils/config';
 
@@ -11,10 +10,10 @@ import { getTreatMissingData, getComparisonOperator } from '../utils/alarm';
 import { getDuration } from '../utils/metric';
 
 // Generate nested stack for billing alerts
-export class NestedBillingAlertStack extends cfn.NestedStack {
+export class NestedBillingAlertStack extends NestedStack {
   protected readonly snsStack: NestedSNSStack;
 
-  constructor(scope: cdk.Construct, id: string, snsStack: NestedSNSStack, props?: cfn.NestedStackProps) {
+  constructor(scope: Construct, id: string, snsStack: NestedSNSStack, props?: NestedStackProps) {
     super(scope, id, props);
 
     this.snsStack = snsStack;
@@ -33,7 +32,7 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
 
   private createBudgetAlarm(id: string, alarmOpts: config.BillingAlertAlarmOptions, topic: string): void {
     const budgetName = `${id}-${topic}-budget`;
-    const topicArn = cdk.Token.asString(this.snsStack.getTopicArn(topic));
+    const topicArn = Token.asString(this.snsStack.getTopicArn(topic));
 
     const budgetParams: b.CfnBudgetProps = {
       budget: {
@@ -67,7 +66,7 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
   }
 
   private createAnomalyDetectionAlarm(id: string, billingAlert: config.ConfigCustomBillingAlert, topic: string): void {
-    const topicArn = cdk.Token.asString(this.snsStack.getTopicArn(topic));
+    const topicArn = Token.asString(this.snsStack.getTopicArn(topic));
     const conf = billingAlert.alarm?.[topic];
 
     if (conf && conf.enabled !== false) {
@@ -121,6 +120,6 @@ export class NestedBillingAlertStack extends cfn.NestedStack {
   }
 }
 
-export function createBillingAlertStack(stack: cdk.Stack, snsStack: NestedSNSStack): NestedBillingAlertStack {
+export function createBillingAlertStack(stack: Stack, snsStack: NestedSNSStack): NestedBillingAlertStack {
   return new NestedBillingAlertStack(stack, stack.stackName + '-billing-alert', snsStack);
 }
