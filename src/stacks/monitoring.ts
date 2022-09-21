@@ -12,6 +12,7 @@ import { createEKSMonitoring, NestedEKSAlarmsStack } from './nestedEKS';
 import { createLogGroupMonitoring, NestedLogGroupAlarmsStack, LogGroupsProps } from './nestedLogGroup';
 import { createBillingAlertStack, NestedBillingAlertStack } from './nestedBillingAlert';
 import { createAppSyncMonitoring, NestedAppSyncAlarmsStack } from './nestedAppSync';
+import { createSQSMonitoring, NestedSQSAlarmsStack } from './nestedSQS';
 
 // Generate stack with two nested stacks
 export class MonitoringStack extends Stack {
@@ -108,6 +109,13 @@ export class MonitoringStack extends Stack {
    */
   public addDefaultLogGroupMonitoring(props?: LogGroupsProps): NestedLogGroupAlarmsStack[] {
     return createLogGroupMonitoring(this, this.snsStack, props, this.versionReportingEnabled);
+  }
+
+  /**
+   * Setup SQS monitoring
+   */
+   public addDefaultSQSMonitoring(): NestedSQSAlarmsStack[] {
+    return createSQSMonitoring(this, this.snsStack, this.versionReportingEnabled);
   }
 }
 
