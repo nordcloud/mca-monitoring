@@ -118,5 +118,7 @@ export function defaultConfigToNameSpace(conf: config.ConfigDefaultType): string
       return 'Custom';
     case config.ConfigDefaultType.AppSync:
       return 'AWS/AppSync';
+    case config.ConfigDefaultType.SQS:
+      return 'AWS/SQS';
   }
 }

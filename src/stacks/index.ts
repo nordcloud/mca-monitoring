@@ -8,3 +8,4 @@ export * from './nestedRDS';
 export * from './nestedEKS';
 export * from './monitoring';
 export * from './nestedAppSync';
+export * from './nestedSQS'
