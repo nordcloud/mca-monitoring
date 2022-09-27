@@ -92,6 +92,8 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
       unit: undefined,
     });
 
+    let prevAlarm: cw.Alarm | undefined;
+
     Object.keys(localConf?.alarm || {}).forEach(topic => {
       const conf = localConf?.alarm?.[topic];
       if (conf && conf.enabled !== false) {
@@ -103,6 +105,12 @@ export class NestedLogGroupAlarmsStack extends BaseNestedStack {
           alarmName,
           actionsEnabled: true,
         });
+
+        if (prevAlarm) {
+          alarm.node.addDependency(prevAlarm)
+        }
+
+        prevAlarm = alarm;
 
         this.snsStack.addAlarmActions(topic, alarm, localConf.autoResolve === true || conf.autoResolve === true);
       }
